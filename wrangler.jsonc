@@ -81,7 +81,7 @@
           "binding": "DB",
           "database_name": "vulnfocus",
           // UUID que devuelve: npx wrangler d1 create vulnfocus
-          "database_id": "REEMPLAZAR_UUID_D1_PRODUCCION",
+          "database_id": "c65742a7-e22f-4a23-84cd-45f96e303ea5",
           "migrations_dir": "migrations"
         }
       ],
