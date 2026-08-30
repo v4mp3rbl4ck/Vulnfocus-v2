@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    
+    <!-- Página Principal -->
+    <url>
+        <loc>https://vulnfocus.com/</loc>
+        <xhtml:link rel="alternate" hreflang="es" href="https://vulnfocus.com/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vulnfocus.com/?lang=en"/>
+        <lastmod>2025-07-01</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    
+    <!-- Página de Recursos -->
+    <url>
+        <loc>https://vulnfocus.com/recursos</loc>
+        <xhtml:link rel="alternate" hreflang="es" href="https://vulnfocus.com/recursos"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vulnfocus.com/recursos?lang=en"/>
+        <lastmod>2025-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- Página de Proceso -->
+    <url>
+        <loc>https://vulnfocus.com/proceso</loc>
+        <xhtml:link rel="alternate" hreflang="es" href="https://vulnfocus.com/proceso"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vulnfocus.com/proceso?lang=en"/>
+        <lastmod>2025-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- Página de Certificaciones -->
+    <url>
+        <loc>https://vulnfocus.com/certificaciones</loc>
+        <xhtml:link rel="alternate" hreflang="es" href="https://vulnfocus.com/certificaciones"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://vulnfocus.com/certificaciones?lang=en"/>
+        <lastmod>2025-12-28</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- Secciones principales (anchor links para crawlers) -->
+    <url>
+        <loc>https://vulnfocus.com/#services</loc>
+        <lastmod>2025-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+    <url>
+        <loc>https://vulnfocus.com/#methodology</loc>
+        <lastmod>2025-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    
+    <url>
+        <loc>https://vulnfocus.com/#contact</loc>
+        <lastmod>2025-07-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+</urlset>

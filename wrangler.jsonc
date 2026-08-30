@@ -1,0 +1,99 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "vulnfocus",
+  "main": "worker/index.js",
+
+  // compatibility_date fija el conjunto de comportamientos del runtime de Workers.
+  // Cambiarla puede alterar el comportamiento del Worker, por eso NO se actualiza sola.
+  // Revísala cuando actualices Wrangler de forma significativa (1-2 veces al año) y
+  // vuelve a pasar `npm test` + el smoke test antes de desplegar el cambio.
+  // >= 2025-04-01 activa assets_navigation_prefers_asset_serving (ver nota en assets).
+  "compatibility_date": "2026-08-25",
+
+  "assets": {
+    // Salida del build de Create React App.
+    "directory": "./frontend/build/",
+    "binding": "ASSETS",
+
+    // Fallback SPA: cualquier ruta que no coincida con un fichero sirve index.html
+    // con 200. Necesario para /proceso, /recursos y /certificaciones por acceso directo.
+    "not_found_handling": "single-page-application",
+
+    // Control de routing explícito (requiere Wrangler >= 4.20.0).
+    // Solo /api/* invoca el Worker; el resto va directo a Static Assets.
+    //   - Las visitas a páginas NO cuentan como invocaciones facturables.
+    //   - GET /api/contact devuelve un 405 real y no index.html, que es lo que
+    //     ocurriría si dependiéramos de la heurística Sec-Fetch-Mode: navigate.
+    "run_worker_first": ["/api/*"]
+  },
+
+  // Rate limiting nativo de Workers (Wrangler >= 4.36.0).
+  // 5 solicitudes / 60 s por clave (CF-Connecting-IP). Ver README > Rate limiting
+  // para el alcance real y por qué se acepta la IP como clave en este caso.
+  "ratelimits": [
+    {
+      "name": "CONTACT_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 5, "period": 60 }
+    }
+  ],
+
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "preview_urls": true,
+
+  // ---------------------------------------------------------------------------
+  // NO hay d1_databases ni vars en el nivel raíz A PROPÓSITO.
+  //
+  // Un `wrangler deploy` sin --env falla con "binding DB no definido" en lugar de
+  // desplegar silenciosamente contra una base equivocada. Cada entorno declara su
+  // propia D1 de forma explícita, así que no existe una base "por defecto" que
+  // pueda recibir escrituras de pruebas por accidente.
+  //
+  //   Staging:     npx wrangler deploy --env staging
+  //   Producción:  npx wrangler deploy --env production
+  // ---------------------------------------------------------------------------
+
+  "env": {
+    "staging": {
+      "name": "vulnfocus-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "vulnfocus-staging",
+          // UUID que devuelve: npx wrangler d1 create vulnfocus-staging
+          "database_id": "REEMPLAZAR_UUID_D1_STAGING",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "STORE_IP": "false",
+        // Hostname del despliegue de staging. NO incluye vulnfocus.com: un token
+        // de Turnstile emitido en producción no vale en staging y viceversa.
+        "TURNSTILE_ALLOWED_HOSTNAMES": "staging.vulnfocus.com"
+      },
+      "observability": { "enabled": true, "head_sampling_rate": 1 }
+    },
+
+    "production": {
+      "name": "vulnfocus",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "vulnfocus",
+          // UUID que devuelve: npx wrangler d1 create vulnfocus
+          "database_id": "REEMPLAZAR_UUID_D1_PRODUCCION",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "STORE_IP": "false",
+        "TURNSTILE_ALLOWED_HOSTNAMES": "vulnfocus.com,www.vulnfocus.com"
+      },
+      "observability": { "enabled": true, "head_sampling_rate": 1 },
+      "routes": [
+        { "pattern": "vulnfocus.com", "custom_domain": true },
+        { "pattern": "www.vulnfocus.com", "custom_domain": true }
+      ]
+    }
+  }
+}

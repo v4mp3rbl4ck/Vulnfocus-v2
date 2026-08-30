@@ -1,0 +1,20 @@
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Mitad izquierda - Borde Azul -->
+  <path 
+    d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23" 
+    fill="none"
+    stroke="#0080FF"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Mitad derecha - Borde Rojo -->
+  <path 
+    d="M12 2L21 5V11C21 16.55 17.16 21.74 12 23" 
+    fill="none"
+    stroke="#FF4458"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

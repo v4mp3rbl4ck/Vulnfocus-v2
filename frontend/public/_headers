@@ -1,0 +1,48 @@
+# Cabeceras aplicadas por Cloudflare Workers Static Assets.
+#
+# IMPORTANTE: este fichero NO afecta a las respuestas generadas por el Worker
+# (todo lo que cuelga de /api/*). Esas cabeceras se establecen en worker/index.js.
+#
+# CRA copia todo el contenido de public/ a build/ durante el build, así que este
+# fichero acaba en el directorio de assets. Workers lo interpreta y no lo sirve.
+
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests
+
+# Assets con hash en el nombre (main.a1b2c3d4.js). Inmutables por definición.
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# El shell de la SPA debe revalidarse siempre; si no, un despliegue nuevo puede
+# quedar sirviendo un index.html viejo que apunta a bundles que ya no existen.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# ---------------------------------------------------------------------------
+# Protección SEO de los entornos que no son producción.
+#
+# Se hace con X-Robots-Tag y reglas acotadas por hostname, NO tocando robots.txt
+# ni las etiquetas canonical: esos ficheros son los mismos en todos los entornos
+# y deben seguir describiendo la configuración SEO de PRODUCCIÓN.
+#
+# Refuerzo adicional que ya existe: index.html declara
+#   <link rel="canonical" href="https://vulnfocus.com/">
+# así que, aunque un rastreador llegara a staging, la página se declara a sí
+# misma como copia de la de producción y no compite con ella.
+# ---------------------------------------------------------------------------
+
+# URLs de vista previa por versión/rama.
+https://:version.:subdomain.workers.dev/*
+  X-Robots-Tag: noindex, nofollow
+
+# Entorno de staging con hostname público.
+https://staging.vulnfocus.com/*
+  X-Robots-Tag: noindex, nofollow
