@@ -1,7 +1,7 @@
 # VulnFocus — React + Cloudflare Workers + D1
 
 Sitio de VulnFocus SPA. Frontend React servido como Static Assets de Cloudflare y
-una API serverless en un Worker. Sin servidores que administrar.
+una API serverless en un Worker. Sin servidores que administrar. .
 
 ```
 Internet
