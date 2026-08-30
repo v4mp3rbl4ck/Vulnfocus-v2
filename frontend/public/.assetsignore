@@ -1,0 +1,4 @@
+# Ficheros del directorio de build que NO deben subirse como assets públicos.
+# Mismo formato que .gitignore.
+asset-manifest.json
+*.map
