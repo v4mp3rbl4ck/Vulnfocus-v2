@@ -96,18 +96,21 @@ const Contact = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    // Se copia la ref a una variable local: en el cleanup, sectionRef.current
+    // puede apuntar ya a otro nodo y se desobservaría el equivocado.
+    const nodo = sectionRef.current;
+    if (nodo) {
+      observer.observe(nodo);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (nodo) {
+        observer.unobserve(nodo);
       }
     };
   }, []);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {};
     
     // Nombre: mínimo 2 caracteres
@@ -134,7 +137,7 @@ const Contact = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData, language]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -228,7 +231,7 @@ const Contact = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, language, toast, turnstileToken, resetTurnstile]);
+  }, [formData, language, toast, turnstileToken, resetTurnstile, validateForm]);
 
   const contactChannels = [
     {

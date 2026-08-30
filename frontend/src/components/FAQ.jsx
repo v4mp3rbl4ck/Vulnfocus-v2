@@ -20,13 +20,16 @@ const FAQ = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    // Se copia la ref a una variable local: en el cleanup, sectionRef.current
+    // puede apuntar ya a otro nodo y se desobservaría el equivocado.
+    const nodo = sectionRef.current;
+    if (nodo) {
+      observer.observe(nodo);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (nodo) {
+        observer.unobserve(nodo);
       }
     };
   }, []);
