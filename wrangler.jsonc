@@ -61,7 +61,7 @@
           "binding": "DB",
           "database_name": "vulnfocus-staging",
           // UUID que devuelve: npx wrangler d1 create vulnfocus-staging
-          "database_id": "REEMPLAZAR_UUID_D1_STAGING",
+          "database_id": "c65742a7-e22f-4a23-84cd-45f96e303ea5",
           "migrations_dir": "migrations"
         }
       ],
