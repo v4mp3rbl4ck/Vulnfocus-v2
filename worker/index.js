@@ -455,22 +455,7 @@ export default {
      * No muestra secretos.
      * Solamente indica si existen.
      */
-    if (
-      path ===
-      "/api/debug"
-    ) {
-
-      if (
-        request.method !== "GET"
-      ) {
-        return errorResponse(
-          405,
-          "Método no permitido",
-          {
-            Allow: "GET",
-          },
-        );
-      }
+   
 
 
       return json(
