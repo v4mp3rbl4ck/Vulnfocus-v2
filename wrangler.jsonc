@@ -27,7 +27,7 @@
     {
       "binding": "DB",
       "database_name": "vulnfocus-production",
-      "database_id": "REEMPLAZAR_CON_UUID_REAL_D1",
+      "database_id": "cdd86698-d6f3-44d9-a0f9-55f06f4c6351",
       "migrations_dir": "migrations"
     }
   ],
