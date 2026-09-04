@@ -4,11 +4,7 @@
  * Superficie pública:
  *   POST /api/contact  -> valida, verifica Turnstile, guarda en D1, notifica Telegram
  *   GET  /api/health   -> healthcheck
- *   GET  /api/debug    -> diagnóstico temporal de bindings/runtime
  *   *                  -> 404 JSON genérico
- *
- * IMPORTANTE:
- * /api/debug es TEMPORAL y debe eliminarse cuando terminemos el diagnóstico.
  */
 
 import {
@@ -200,10 +196,6 @@ async function handleContact(request, env, ctx) {
       reason: turnstile.reason,
     });
 
-
-    /**
-     * Secret inexistente
-     */
     if (
       turnstile.reason ===
       "not-configured"
@@ -214,10 +206,6 @@ async function handleContact(request, env, ctx) {
       );
     }
 
-
-    /**
-     * Otros errores Turnstile
-     */
     return errorResponse(
       403,
       "No fue posible verificar la solicitud. Recarga la página e inténtalo de nuevo.",
@@ -267,8 +255,6 @@ async function handleContact(request, env, ctx) {
 
   /**
    * Comprobar binding D1
-   *
-   * Esto evita un error ambiguo si DB no existe.
    */
   if (!env.DB) {
     logEvent("d1_not_configured", {
@@ -345,7 +331,7 @@ async function handleContact(request, env, ctx) {
 
 
   /**
-   * Telegram se ejecuta en background
+   * Telegram en background
    */
   ctx.waitUntil(
     sendTelegramNotification(
@@ -404,7 +390,6 @@ export default {
         );
       }
 
-
       return errorResponse(
         405,
         "Método no permitido",
@@ -436,72 +421,12 @@ export default {
         );
       }
 
-
       return errorResponse(
         405,
         "Método no permitido",
         {
           Allow: "GET",
         },
-      );
-    }
-
-
-    /**
-     * GET /api/debug
-     *
-     * TEMPORAL.
-     *
-     * No muestra secretos.
-     * Solamente indica si existen.
-     */
-   
-
-
-      return json(
-        {
-
-          worker:
-            "vulnfocus-v2",
-
-          debugVersion:
-            "debug-2026-09-03-01",
-
-          hasTurnstileSecret:
-            Boolean(
-              env.TURNSTILE_SECRET_KEY,
-            ),
-
-          hasTelegramBotToken:
-            Boolean(
-              env.TELEGRAM_BOT_TOKEN,
-            ),
-
-          hasTelegramChatId:
-            Boolean(
-              env.TELEGRAM_CHAT_ID,
-            ),
-
-          hasDB:
-            Boolean(
-              env.DB,
-            ),
-
-          hasRateLimiter:
-            Boolean(
-              env.CONTACT_RATE_LIMITER,
-            ),
-
-          allowedHostnames:
-            env.TURNSTILE_ALLOWED_HOSTNAMES ||
-            null,
-
-          storeIp:
-            env.STORE_IP ||
-            null,
-
-        },
-        200,
       );
     }
 
