@@ -103,7 +103,8 @@ export const quoteEs = {
     closeAction: 'Entendido',
     requestedBadge: 'Propuesta solicitada',
     success: 'Hemos recibido tu solicitud de propuesta formal.',
-    alreadyRequested: 'Ya habíamos recibido esta solicitud. No hemos creado una segunda.',
+    alreadyRequested:
+      'Esta propuesta formal ya fue solicitada anteriormente. No hemos creado una segunda.',
     nextSteps:
       'Revisaremos el alcance y te contactaremos para confirmarlo antes de enviarte la propuesta formal. Te llegará un acuse al correo de la cotización.',
     privacy:
@@ -141,10 +142,27 @@ export const quoteEs = {
       generic: 'No fue posible enviar la solicitud. Inténtalo de nuevo.',
       network: 'No hay conexión con el servidor. Comprueba tu red e inténtalo de nuevo.',
       notFound: 'No encontramos esa cotización. Es posible que el enlace sea incorrecto o haya caducado.',
-      rateLimited: 'Has hecho demasiados intentos. Espera un minuto e inténtalo de nuevo.',
+      rateLimited: 'Has realizado demasiados intentos. Inténtalo nuevamente en unos minutos.',
       verification: 'No fue posible verificar la solicitud. Recarga la página e inténtalo de nuevo.',
+      unavailable: 'El formulario no está disponible temporalmente. Inténtalo en unos minutos.',
       inProgress:
         'Esta cotización ya está en curso con nuestro equipo. Escríbenos y la retomamos.',
+    },
+
+    fieldErrors: {
+      targetDate: {
+        format: 'Indica la fecha con el formato AAAA-MM-DD.',
+        past: 'La fecha objetivo no puede ser anterior a hoy.',
+        'too-far': 'La fecha objetivo no puede ir más allá del {max}.',
+      },
+      notes: {
+        'too-long': 'Los comentarios son demasiado largos.',
+        type: 'Revisa el contenido de los comentarios.',
+      },
+      scopeNotes: {
+        'too-long': 'La información de alcance es demasiado larga.',
+        type: 'Revisa el contenido de la información de alcance.',
+      },
     },
   },
 

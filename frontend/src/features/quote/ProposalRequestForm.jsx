@@ -1,8 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Check, Loader2, Send, X } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import useTurnstile from '../../hooks/useTurnstile';
 import { TURNSTILE_STATUS } from '../../lib/turnstileWidget';
+import {
+  PROPOSAL_TEXT_LIMITS,
+  targetDateBounds,
+  validateTargetDate,
+} from '../../config/proposal-request';
 import { track } from '../../lib/analytics';
 import { fetchProposalPrefill, requestFormalProposal } from './quoteApi';
 
@@ -42,6 +47,9 @@ function formatAmount(value, language) {
  * El único campo obligatorio es la verificación. Todo lo demás es opcional
  * porque, de verdad, ya lo sabemos.
  */
+/** Campos con un hueco propio bajo el que mostrar su error. */
+const FORM_FIELDS = ['notes', 'targetDate', 'scopeNotes'];
+
 const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
   const { t, language } = useLanguage();
   const p = t.quote.proposal;
@@ -53,8 +61,17 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
   const [status, setStatus] = useState('loading'); // loading | ready | sending | done | error
   const [prefill, setPrefill] = useState(null);
   const [alreadyRequested, setAlreadyRequested] = useState(false);
+  // `error` es el aviso general; `fieldErrors` va debajo del campo culpable.
+  // Separados a propósito: un error de un campo concreto mostrado solo como
+  // banner obliga a adivinar cuál de los tres hay que corregir.
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [form, setForm] = useState({ notes: '', targetDate: '', scopeNotes: '', website: '' });
+
+  // Los límites del calendario salen de la MISMA regla que aplica el Worker
+  // (config/proposal-request.js). Se calculan una vez por apertura: el diálogo
+  // no vive lo bastante como para que cambie el día.
+  const bounds = useMemo(() => targetDateBounds(), []);
 
   const publicId = quote?.publicId || '';
 
@@ -121,14 +138,61 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
     if (status === 'ready' && firstFieldRef.current) firstFieldRef.current.focus();
   }, [status]);
 
+  /**
+   * Texto para un error de campo.
+   *
+   * Prioridad: traducción propia por (campo, motivo) → mensaje del servidor →
+   * genérico. El servidor responde siempre en español; su texto es la reserva
+   * para códigos que esta versión de la interfaz todavía no conozca, no la
+   * primera opción.
+   */
+  const fieldErrorText = useCallback(
+    (field, reason, serverMessage) => {
+      const plantilla = p.fieldErrors?.[field]?.[reason];
+      if (plantilla) return plantilla.replace('{max}', bounds.max);
+      return serverMessage || p.errors.generic;
+    },
+    [p, bounds],
+  );
+
   const update = (field) => (event) =>
     setForm((current) => ({ ...current, [field]: event.target.value }));
+
+  /**
+   * La fecha se valida al cambiarla, no solo al enviar: el error desaparece en
+   * cuanto se elige una válida, en lugar de quedarse en pantalla contradiciendo
+   * a lo que se ve en el campo.
+   */
+  const updateTargetDate = (event) => {
+    const value = event.target.value;
+    setForm((current) => ({ ...current, targetDate: value }));
+
+    const check = validateTargetDate(value);
+    setFieldErrors((current) => {
+      const next = { ...current };
+      if (check.ok) delete next.targetDate;
+      else next.targetDate = fieldErrorText('targetDate', check.reason);
+      return next;
+    });
+  };
 
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
+
+      // Validación local ANTES de enviar. No sustituye a la del servidor —que
+      // vuelve a comprobarlo todo— pero evita un viaje de ida y vuelta para
+      // decirle a alguien algo que ya se sabía aquí.
+      const fecha = validateTargetDate(form.targetDate);
+      if (!fecha.ok) {
+        setFieldErrors({ targetDate: fieldErrorText('targetDate', fecha.reason) });
+        setError('');
+        return;
+      }
+
       setStatus('sending');
       setError('');
+      setFieldErrors({});
 
       // Solo los tres campos adicionales y la verificación. Nada de horas, ni
       // precio, ni alcance: el servidor los toma de D1.
@@ -147,6 +211,22 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
 
       if (!result.ok) {
         setStatus('ready');
+
+        // Un 400 sobre un campo concreto se pinta bajo ese campo. El banner
+        // queda para lo que no pertenece a ninguno: red, verificación, límite de
+        // intentos, cotización en curso o fallo del servidor.
+        if (result.error === 'validation' && FORM_FIELDS.includes(result.field)) {
+          setFieldErrors({
+            [result.field]: fieldErrorText(result.field, result.reason, result.message),
+          });
+          return;
+        }
+
+        if (result.error === 'validation') {
+          setError(result.message || p.errors.generic);
+          return;
+        }
+
         setError(p.errors[result.error] || p.errors.generic);
         return;
       }
@@ -156,7 +236,7 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
       track('formal_proposal_submitted');
       if (onRequested) onRequested(result.proposal);
     },
-    [form, publicId, turnstile, p, onRequested],
+    [form, publicId, turnstile, p, onRequested, fieldErrorText],
   );
 
   const summary = prefill || quote;
@@ -292,15 +372,20 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
               <label htmlFor="proposal-notes" className="form-label">{p.form.notes}</label>
               <textarea
                 id="proposal-notes"
-                className="form-textarea"
+                className={`form-textarea ${fieldErrors.notes ? 'input-error' : ''}`}
                 rows={3}
-                maxLength={1000}
+                maxLength={PROPOSAL_TEXT_LIMITS.notes}
                 value={form.notes}
                 onChange={update('notes')}
                 disabled={status === 'sending'}
+                aria-invalid={fieldErrors.notes ? 'true' : undefined}
                 ref={firstFieldRef}
               />
-              <p className="quote-field-help">{p.form.notesHelp}</p>
+              {fieldErrors.notes ? (
+                <p className="error-text" role="alert">{fieldErrors.notes}</p>
+              ) : (
+                <p className="quote-field-help">{p.form.notesHelp}</p>
+              )}
             </div>
 
             <div className="form-group">
@@ -310,12 +395,31 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
               <input
                 type="date"
                 id="proposal-target-date"
-                className="form-input"
+                className={`form-input ${fieldErrors.targetDate ? 'input-error' : ''}`}
                 value={form.targetDate}
-                onChange={update('targetDate')}
+                onChange={updateTargetDate}
                 disabled={status === 'sending'}
+                // Los mismos límites que aplica el Worker: el calendario del
+                // navegador ni siquiera deja elegir una fecha que se iba a
+                // rechazar después.
+                min={bounds.min}
+                max={bounds.max}
+                aria-invalid={fieldErrors.targetDate ? 'true' : undefined}
+                aria-describedby={
+                  fieldErrors.targetDate
+                    ? 'proposal-target-date-error'
+                    : 'proposal-target-date-help'
+                }
               />
-              <p className="quote-field-help">{p.form.targetDateHelp}</p>
+              {fieldErrors.targetDate ? (
+                <p className="error-text" id="proposal-target-date-error" role="alert">
+                  {fieldErrors.targetDate}
+                </p>
+              ) : (
+                <p className="quote-field-help" id="proposal-target-date-help">
+                  {p.form.targetDateHelp}
+                </p>
+              )}
             </div>
 
             <div className="form-group">
@@ -324,14 +428,19 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
               </label>
               <textarea
                 id="proposal-scope-notes"
-                className="form-textarea"
+                className={`form-textarea ${fieldErrors.scopeNotes ? 'input-error' : ''}`}
                 rows={3}
-                maxLength={1000}
+                maxLength={PROPOSAL_TEXT_LIMITS.scopeNotes}
                 value={form.scopeNotes}
                 onChange={update('scopeNotes')}
                 disabled={status === 'sending'}
+                aria-invalid={fieldErrors.scopeNotes ? 'true' : undefined}
               />
-              <p className="quote-field-help">{p.form.scopeNotesHelp}</p>
+              {fieldErrors.scopeNotes ? (
+                <p className="error-text" role="alert">{fieldErrors.scopeNotes}</p>
+              ) : (
+                <p className="quote-field-help">{p.form.scopeNotesHelp}</p>
+              )}
             </div>
 
             {turnstile.enabled && (
@@ -376,7 +485,11 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
                 className="btn-primary"
                 // Sin widget montado no hay nada que resolver, y con un token
                 // gastado o caducado el envío moriría en un 403 del Worker.
-                disabled={status === 'sending' || (turnstile.enabled && !turnstile.solved)}
+                disabled={
+                  status === 'sending' ||
+                  Object.keys(fieldErrors).length > 0 ||
+                  (turnstile.enabled && !turnstile.solved)
+                }
               >
                 {status === 'sending' ? (
                   <>

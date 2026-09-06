@@ -291,9 +291,7 @@ describe("Cómo lo consume el formulario", () => {
   });
 
   it("el botón solo se habilita con token vigente, no con el widget a medias", () => {
-    expect(proposalForm).toContain(
-      "disabled={status === 'sending' || (turnstile.enabled && !turnstile.solved)}",
-    );
+    expect(proposalForm).toContain("(turnstile.enabled && !turnstile.solved)");
     // La condición anterior miraba el token suelto, sin saber si el widget
     // llegó a montarse.
     expect(proposalForm).not.toContain("turnstile.enabled && !turnstile.token");

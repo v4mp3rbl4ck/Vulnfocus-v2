@@ -14,65 +14,68 @@
  * `status`, `quoteNumber`— NO se lee. No se filtra ni se rechaza: sencillamente
  * no existe para este código, que es la única forma de defensa contra mass
  * assignment que no se rompe cuando alguien añade un campo nuevo.
+ *
+ * LAS REGLAS NO VIVEN AQUÍ. Están en `frontend/src/config/proposal-request.js`,
+ * que importan a la vez este validador y el formulario, igual que
+ * `quote-catalog.json` alimenta al motor y al cotizador. Este módulo decide; el
+ * navegador solo se adelanta a la respuesta. El servidor sigue siendo la
+ * autoridad y revalida absolutamente todo.
  */
 
-const LIMITS = { notes: 1000, scopeNotes: 1000 };
+import {
+  PROPOSAL_TEXT_LIMITS,
+  TARGET_DATE_MAX_DAYS,
+  TARGET_DATE_MIN_DAYS,
+  targetDateBounds,
+  validateOptionalText,
+  validateTargetDate,
+} from '../../../frontend/src/config/proposal-request.js';
 
-/** Ventana admisible de la fecha objetivo, en días desde hoy. */
-const TARGET_DATE_WINDOW_DAYS = 730; // dos años
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+export {
+  PROPOSAL_TEXT_LIMITS,
+  TARGET_DATE_MAX_DAYS,
+  TARGET_DATE_MIN_DAYS,
+  targetDateBounds,
+};
 
 function asTrimmed(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
 /**
- * Texto libre opcional.
- * @returns {{ok: true, value: string|null}|{ok: false}}
- */
-function optionalText(raw, max) {
-  if (raw === undefined || raw === null || raw === '') return { ok: true, value: null };
-  // Un número o un objeto donde se espera texto es un cliente roto o una prueba:
-  // se rechaza, no se convierte a cadena.
-  if (typeof raw !== 'string') return { ok: false };
-  const value = raw.trim();
-  if (value.length === 0) return { ok: true, value: null };
-  if (value.length > max) return { ok: false };
-  return { ok: true, value };
-}
-
-/**
- * Fecha objetivo: `YYYY-MM-DD`, existente en el calendario y dentro de una
- * ventana razonable.
+ * MENSAJES DE ERROR DE VALIDACIÓN.
  *
- * Se compara contra la fecha UTC porque el Worker no tiene zona horaria propia.
- * Se admite el día de hoy: alguien que pide la propuesta "para ya" no debe
- * chocar con un error de validación.
+ * Catálogo cerrado, indexado por campo y motivo. Dos propiedades que no son
+ * negociables:
  *
- * @returns {{ok: true, value: string|null}|{ok: false}}
+ *  · **Nunca se interpola entrada del usuario.** Lo único variable es la fecha
+ *    límite, que la calcula el servidor. Un mensaje que devuelve lo que llegó es
+ *    un reflector, y acaba incrustado en sitios que no controlamos.
+ *  · **Nunca describen el interior.** Dicen qué corregir, no cómo está escrito
+ *    el validador, ni qué hay en la base, ni por qué falló por dentro.
+ *
+ * A diferencia de /api/contact y /api/quotes, aquí SÍ se devuelve el campo. En
+ * aquellos endpoints el validador cubre 49 preguntas de un catálogo y decir cuál
+ * falló describiría su forma interna. Aquí los campos son exactamente los tres
+ * que la persona tiene delante en el formulario: no hay nada que revelar, y
+ * callarlo solo consigue que no sepa cuál corregir.
  */
-function optionalTargetDate(raw, now) {
-  if (raw === undefined || raw === null || raw === '') return { ok: true, value: null };
-  if (typeof raw !== 'string') return { ok: false };
+function validationMessage(field, reason, bounds) {
+  if (field === 'targetDate') {
+    if (reason === 'past') return 'La fecha objetivo no puede ser anterior a hoy.';
+    if (reason === 'too-far') return `La fecha objetivo no puede ir más allá del ${bounds.max}.`;
+    return 'Indica la fecha objetivo con el formato AAAA-MM-DD.';
+  }
 
-  const value = raw.trim();
-  if (value.length === 0) return { ok: true, value: null };
-  if (!DATE_RE.test(value)) return { ok: false };
+  if (field === 'notes' || field === 'scopeNotes') {
+    const label = field === 'notes' ? 'Los comentarios adicionales' : 'La información de alcance';
+    if (reason === 'too-long') {
+      return `${label} no pueden superar los ${PROPOSAL_TEXT_LIMITS[field]} caracteres.`;
+    }
+    return `${label} deben ser texto.`;
+  }
 
-  const parsed = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(parsed.getTime())) return { ok: false };
-  // "2026-02-31" pasa el regex y Date lo desplaza a marzo. Se compara la fecha
-  // reconstruida con la recibida para descartar exactamente ese caso.
-  if (parsed.toISOString().slice(0, 10) !== value) return { ok: false };
-
-  const today = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
-  const days = Math.round((parsed.getTime() - today.getTime()) / 86400000);
-  if (days < 0 || days > TARGET_DATE_WINDOW_DAYS) return { ok: false };
-
-  return { ok: true, value };
+  return 'Revisa los datos del formulario e inténtalo de nuevo.';
 }
 
 /**
@@ -81,29 +84,35 @@ function optionalTargetDate(raw, now) {
  * @param {*} payload  Cuerpo JSON ya parseado.
  * @param {Date} [now] Inyectable para los tests.
  * @returns {{ok: true, data: {notes: string|null, targetDate: string|null, scopeNotes: string|null}}
- *          |{ok: false, field: string}}
+ *          |{ok: false, field: string, reason: string, message: string}}
  */
 export function normalizeProposalInput(payload, now = new Date()) {
+  const bounds = targetDateBounds(now);
+  const invalid = (field, reason) => ({
+    ok: false,
+    field,
+    reason,
+    message: validationMessage(field, reason, bounds),
+  });
+
   if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
-    return { ok: false, field: 'body' };
+    return invalid('body', 'invalid');
   }
 
-  const notes = optionalText(payload.notes, LIMITS.notes);
-  if (!notes.ok) return { ok: false, field: 'notes' };
+  const notes = validateOptionalText(payload.notes, PROPOSAL_TEXT_LIMITS.notes);
+  if (!notes.ok) return invalid('notes', notes.reason);
 
-  const scopeNotes = optionalText(payload.scopeNotes, LIMITS.scopeNotes);
-  if (!scopeNotes.ok) return { ok: false, field: 'scopeNotes' };
+  const scopeNotes = validateOptionalText(payload.scopeNotes, PROPOSAL_TEXT_LIMITS.scopeNotes);
+  if (!scopeNotes.ok) return invalid('scopeNotes', scopeNotes.reason);
 
-  const targetDate = optionalTargetDate(payload.targetDate, now);
-  if (!targetDate.ok) return { ok: false, field: 'targetDate' };
+  const targetDate = validateTargetDate(payload.targetDate, now);
+  if (!targetDate.ok) return invalid('targetDate', targetDate.reason);
 
   return {
     ok: true,
     data: { notes: notes.value, targetDate: targetDate.value, scopeNotes: scopeNotes.value },
   };
 }
-
-export { LIMITS as PROPOSAL_LIMITS, TARGET_DATE_WINDOW_DAYS };
 
 /**
  * ENMASCARADO DE LOS DATOS DE CONTACTO

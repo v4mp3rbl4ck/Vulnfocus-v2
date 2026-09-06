@@ -60,6 +60,31 @@ export function errorResponse(status, messageEs, extraHeaders = {}) {
   return json({ status: "error", message: messageEs }, status, extraHeaders);
 }
 
+/**
+ * Error de validación con el campo señalado.
+ *
+ * Forma fija, para que el navegador no tenga que adivinar:
+ *
+ *   { "status": "error", "error": "validation_error",
+ *     "field": "targetDate", "reason": "too-far", "message": "…" }
+ *
+ *  · `error` y `reason` son códigos estables: es de lo que depende la interfaz
+ *    para traducir el mensaje al idioma del visitante.
+ *  · `message` es el texto en español que sirve de reserva si la interfaz no
+ *    conoce el código. Sale de un catálogo cerrado y NUNCA interpola entrada del
+ *    usuario: un mensaje que devuelve lo que llegó es un reflector.
+ *  · `field` procede siempre de una lista cerrada del validador, nunca del
+ *    cuerpo de la petición.
+ *
+ * Solo la usan endpoints cuyos campos son exactamente los que la persona ve en
+ * pantalla. Donde el validador cubre un catálogo interno —/api/contact,
+ * /api/quotes— se sigue devolviendo el error genérico de `errorResponse`: ahí
+ * decir qué campo falló describiría la forma interna del validador.
+ */
+export function validationErrorResponse({ field, reason, message }) {
+  return json({ status: "error", error: "validation_error", field, reason, message }, 400);
+}
+
 /** Éxito. Se usa también para el honeypot con un id sintético, para que un bot
  *  no pueda distinguir "aceptado" de "descartado". */
 export function successResponse(submissionId, status = 201) {

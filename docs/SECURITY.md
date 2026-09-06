@@ -16,6 +16,37 @@ resultado de la revisión de la superficie añadida por el cotizador.
 | GET | `/api/health` | — | — |
 | * | resto de `/api/*` | — | 404 (deny by default) |
 
+### Formato de los errores
+
+Todos los errores comparten `{"status": "error", "message": "…"}`. Los de
+validación de `POST /api/quotes/:public_id/request-proposal` añaden tres campos:
+
+```json
+{
+  "status": "error",
+  "error": "validation_error",
+  "field": "targetDate",
+  "reason": "too-far",
+  "message": "La fecha objetivo no puede ir más allá del 2028-09-06."
+}
+```
+
+`error` y `reason` son códigos estables; el navegador los traduce y usa `message`
+solo como reserva. **`field` y `reason` salen siempre de una lista cerrada del
+validador, nunca del cuerpo de la petición**, y `message` procede de un catálogo
+fijo que no interpola entrada del usuario: lo único variable es la fecha límite,
+que la calcula el servidor.
+
+Por qué aquí sí se nombra el campo y en `/api/contact` y `/api/quotes` no: en
+aquellos el validador recorre un catálogo interno de 49 preguntas y decir cuál
+falló describiría su forma. Los tres campos de esta ruta son exactamente los que
+la persona tiene delante en el formulario, así que no hay nada que revelar y
+callarlo solo consigue que no sepa cuál corregir.
+
+El 409 lleva `"error": "proposal_conflict"`. El **404 no lleva código a
+propósito**: es idéntico byte a byte para una ruta inexistente, un identificador
+mal formado y una cotización que no existe.
+
 ## Superficie privada — deshabilitada por defecto
 
 | Método | Ruta | Autenticación | Anti-abuso |

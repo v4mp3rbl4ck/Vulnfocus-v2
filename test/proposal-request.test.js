@@ -16,6 +16,10 @@ import {
   validProposalPayload,
   validQuotePayload,
 } from "./helpers.js";
+import {
+  TARGET_DATE_MAX_DAYS,
+  targetDateBounds,
+} from "../frontend/src/config/proposal-request.js";
 
 /**
  * SOLICITUD DE PROPUESTA FORMAL — POST /api/quotes/:public_id/request-proposal
@@ -50,6 +54,15 @@ async function crearCotizacion(over) {
   expect(res.status).toBe(201);
   return (await res.json()).quote;
 }
+
+/** `AAAA-MM-DD` a N días de hoy, con el mismo criterio UTC que usa la regla. */
+function enDias(dias) {
+  const hoy = new Date();
+  const base = Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate());
+  return new Date(base + dias * 86400000).toISOString().slice(0, 10);
+}
+
+const ayer = () => enDias(-1);
 
 /** Fija tarifas en una cotización ya creada, como si el propietario las hubiera configurado. */
 async function conPrecio(publicId, { currency = "CLP", min = 1200000, max = 1800000 } = {}) {
@@ -438,34 +451,179 @@ describe("Manipulación desde el cliente", () => {
 // ---------------------------------------------------------------------------
 describe("Validación de los campos adicionales", () => {
   it.each([
-    ["notes con tipo incorrecto", { notes: 42 }],
-    ["scopeNotes con tipo incorrecto", { scopeNotes: { a: 1 } }],
-    ["notes demasiado largas", { notes: "a".repeat(1001) }],
-    ["targetDate con formato libre", { targetDate: "el mes que viene" }],
-    ["targetDate inexistente en el calendario", { targetDate: "2026-02-31" }],
-    ["targetDate en el pasado", { targetDate: "2020-01-01" }],
-    ["targetDate demasiado lejana", { targetDate: "2099-01-01" }],
-  ])("%s -> 400 sin tocar la base", async (_caso, extra) => {
+    ["notes con tipo incorrecto", { notes: 42 }, "notes", "type"],
+    ["scopeNotes con tipo incorrecto", { scopeNotes: { a: 1 } }, "scopeNotes", "type"],
+    ["notes demasiado largas", { notes: "a".repeat(1001) }, "notes", "too-long"],
+    ["scopeNotes demasiado largas", { scopeNotes: "a".repeat(1001) }, "scopeNotes", "too-long"],
+    ["targetDate con formato libre", { targetDate: "el mes que viene" }, "targetDate", "format"],
+    ["targetDate inexistente en el calendario", { targetDate: "2026-02-31" }, "targetDate", "format"],
+    ["targetDate con tipo incorrecto", { targetDate: 20261102 }, "targetDate", "format"],
+  ])("%s -> 400 señalando el campo, sin tocar la base", async (_caso, extra, field, reason) => {
     const creada = await crearCotizacion();
     mockOutboundFetch({ siteverify: okSiteverify() });
 
     const res = await call(proposalRequest(creada.publicId, validProposalPayload(extra)));
 
     expect(res.status).toBe(400);
-    // El mensaje no dice qué campo falló: es el mismo contrato que /api/contact.
-    expect(await res.json()).toEqual({
-      status: "error",
-      message: "Revisa los datos del formulario e inténtalo de nuevo",
-    });
+    const body = await res.json();
+    expect(body).toMatchObject({ status: "error", error: "validation_error", field, reason });
+    expect(typeof body.message).toBe("string");
+    expect(body.message.length).toBeGreaterThan(0);
+
     expect(await countProposalRequests()).toBe(0);
     expect((await quoteRow(creada.publicId)).status).toBe("NEW");
   });
 
-  it("un cuerpo que no es un objeto -> 400", async () => {
+  it("una fecha anterior a hoy se rechaza como `past`", async () => {
+    const creada = await crearCotizacion();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+
+    const res = await call(
+      proposalRequest(creada.publicId, validProposalPayload({ targetDate: ayer() })),
+    );
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({
+      error: "validation_error",
+      field: "targetDate",
+      reason: "past",
+    });
+    expect(await countProposalRequests()).toBe(0);
+  });
+
+  it("una fecha más allá de la ventana se rechaza como `too-far`", async () => {
+    const creada = await crearCotizacion();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+
+    const res = await call(
+      proposalRequest(
+        creada.publicId,
+        validProposalPayload({ targetDate: enDias(TARGET_DATE_MAX_DAYS + 1) }),
+      ),
+    );
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body).toMatchObject({ field: "targetDate", reason: "too-far" });
+    // El mensaje dice hasta cuándo, que es lo que la persona necesita saber.
+    expect(body.message).toContain(targetDateBounds().max);
+  });
+
+  it.each([
+    ["hoy", 0],
+    ["mañana", 1],
+    ["el último día admitido", TARGET_DATE_MAX_DAYS],
+  ])("una fecha válida (%s) se acepta y se guarda", async (_caso, dias) => {
+    const creada = await crearCotizacion();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+    const fecha = enDias(dias);
+
+    const res = await call(
+      proposalRequest(creada.publicId, validProposalPayload({ targetDate: fecha })),
+    );
+
+    expect(res.status).toBe(200);
+    const fila = await env.DB.prepare(
+      "SELECT target_date FROM quote_proposal_requests",
+    ).first();
+    expect(fila.target_date).toBe(fecha);
+  });
+
+  it("el mensaje de error no filtra nada interno", async () => {
+    const creada = await crearCotizacion();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+
+    const res = await call(
+      proposalRequest(
+        creada.publicId,
+        validProposalPayload({ targetDate: "<script>alert(1)</script>" }),
+      ),
+    );
+
+    const texto = await res.text();
+    // Ni rastro de SQL, rutas, trazas, nombres de tabla ni del propio valor
+    // recibido: el catálogo de mensajes es cerrado y no interpola la entrada.
+    expect(texto).not.toMatch(/SELECT|INSERT|D1_|sqlite|at Object|\.js:\d+/i);
+    expect(texto).not.toMatch(/quote_proposal_requests|quotes\b|public_id/);
+    expect(texto).not.toContain("script>");
+    expect(texto).not.toContain("alert(1)");
+  });
+
+  it("un cuerpo que no es un objeto -> 400 sin campo concreto", async () => {
     const creada = await crearCotizacion();
     mockOutboundFetch({ siteverify: okSiteverify() });
     const res = await call(proposalRequest(creada.publicId, JSON.stringify(["notes"])));
     expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "validation_error", field: "body" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe("Códigos de error distinguibles", () => {
+  it("cada situación tiene su propio código HTTP", async () => {
+    const creada = await crearCotizacion();
+
+    // 400 · datos inválidos
+    mockOutboundFetch({ siteverify: okSiteverify() });
+    const cuatrocientos = await call(
+      proposalRequest(creada.publicId, validProposalPayload({ targetDate: ayer() })),
+    );
+    expect(cuatrocientos.status).toBe(400);
+
+    // 404 · no existe
+    mockOutboundFetch({ siteverify: okSiteverify() });
+    expect(
+      (await call(proposalRequest("f".repeat(32), validProposalPayload()))).status,
+    ).toBe(404);
+
+    // 409 · la lleva una persona
+    await env.DB.prepare("UPDATE quotes SET status = 'PROPOSAL_SENT' WHERE public_id = ?")
+      .bind(creada.publicId)
+      .run();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+    const conflicto = await call(proposalRequest(creada.publicId, validProposalPayload()));
+    expect(conflicto.status).toBe(409);
+    expect(await conflicto.json()).toMatchObject({
+      status: "error",
+      error: "proposal_conflict",
+    });
+  });
+
+  it("un fallo del servidor NO cuenta por qué", async () => {
+    // Sin D1 el endpoint no puede continuar. El cuerpo tiene que ser el genérico
+    // de siempre: ni el binding, ni la consulta, ni la excepción.
+    const creada = await crearCotizacion();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+
+    const res = await call(proposalRequest(creada.publicId, validProposalPayload()), {
+      DB: undefined,
+    });
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({
+      status: "error",
+      message: "No fue posible registrar la solicitud",
+    });
+  });
+
+  it("el 429 del limitador no se confunde con un error de validación", async () => {
+    const creada = await crearCotizacion();
+    mockOutboundFetch({ siteverify: okSiteverify() });
+    const ip = "203.0.113.91";
+
+    let ultima;
+    for (let i = 0; i < 5; i += 1) {
+      ultima = await call(
+        proposalRequest(creada.publicId, validProposalPayload(), {
+          headers: { "CF-Connecting-IP": ip },
+        }),
+      );
+    }
+
+    expect(ultima.status).toBe(429);
+    const body = await ultima.json();
+    expect(body.error).toBeUndefined(); // no es un validation_error
+    expect(ultima.headers.get("Retry-After")).toBe("60");
   });
 });
 

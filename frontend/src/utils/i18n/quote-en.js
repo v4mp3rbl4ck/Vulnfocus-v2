@@ -101,7 +101,8 @@ export const quoteEn = {
     closeAction: 'Got it',
     requestedBadge: 'Proposal requested',
     success: 'We have received your formal proposal request.',
-    alreadyRequested: 'We had already received this request. No second one was created.',
+    alreadyRequested:
+      'This formal proposal was already requested earlier. No second one was created.',
     nextSteps:
       'We will review the scope and contact you to confirm it before sending the formal proposal. A receipt is on its way to the email on the quote.',
     privacy:
@@ -139,9 +140,26 @@ export const quoteEn = {
       generic: 'The request could not be sent. Please try again.',
       network: 'No connection to the server. Check your network and try again.',
       notFound: 'We could not find that quote. The link may be incorrect or expired.',
-      rateLimited: 'Too many attempts. Wait a minute and try again.',
+      rateLimited: 'You have made too many attempts. Please try again in a few minutes.',
       verification: 'We could not verify the request. Reload the page and try again.',
+      unavailable: 'The form is temporarily unavailable. Please try again in a few minutes.',
       inProgress: 'This quote is already being handled by our team. Write to us and we will pick it up.',
+    },
+
+    fieldErrors: {
+      targetDate: {
+        format: 'Use the YYYY-MM-DD format.',
+        past: 'The target date cannot be earlier than today.',
+        'too-far': 'The target date cannot be later than {max}.',
+      },
+      notes: {
+        'too-long': 'Your comments are too long.',
+        type: 'Please check the contents of your comments.',
+      },
+      scopeNotes: {
+        'too-long': 'The scope information is too long.',
+        type: 'Please check the contents of the scope information.',
+      },
     },
   },
 

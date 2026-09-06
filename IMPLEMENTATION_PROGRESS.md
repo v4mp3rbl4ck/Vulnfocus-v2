@@ -24,7 +24,7 @@ Regla: **nada se marca DONE sin estar implementado y validado** (tests o verific
 | 11 · Hardening final y preparación para producción | **DONE** |
 | 12 · Solicitud de propuesta formal desde la estimación | **DONE** |
 
-**Tests: 511 verdes (los 406 anteriores intactos + 105 nuevos) · Build: verde ·
+**Tests: 561 verdes (los 406 anteriores intactos + 155 nuevos) · Build: verde ·
 Sin regresiones conocidas.**
 
 ---
@@ -52,6 +52,7 @@ veía—, era un flujo roto.
 | 12-6 | Aviso de Telegram con el formato acordado y correos —acuse al cliente y alerta interna con su texto libre— | `worker/lib/telegram.js`, `integrations/email/templates.js` |
 | 12-7 | Formulario específico en la propia estimación, con el resumen a la vista. Ya no se navega al contacto genérico | `frontend/src/features/quote/ProposalRequestForm.jsx`, 26 tests |
 | 12-8 | **Corrección del ciclo de vida de Turnstile.** El widget no se montaba si el contenedor aparecía después del script —el caso del diálogo que primero consulta la API—, y había que recargar la página | `frontend/src/lib/turnstileWidget.js`, 21 tests |
+| 12-9 | **Errores útiles.** Un 400 por fecha fuera de rango se mostraba como "no fue posible enviar". Ahora el servidor devuelve campo y motivo, el error se pinta bajo el campo, y la ventana de fechas es una sola regla compartida por Worker y formulario | `frontend/src/config/proposal-request.js`, 41 tests |
 
 ### Lo que el cliente NO puede hacer
 
@@ -88,7 +89,7 @@ complete una verificación que aún no ha aparecido era el síntoma exacto.
 ### Verificación ejecutada
 
 ```
-npm test                      511 passed (17 files)   exit 0
+npm test                      561 passed (18 files)   exit 0
 npm run build:frontend        Compiled successfully   exit 0
 npm run build:site:check      16 rutas + 404.html     exit 0
 npm run deploy:dry-run        151,32 KiB · 38 assets · 4 limitadores · D1
@@ -252,7 +253,8 @@ verificaciones ejecutadas contra un despliegue real.
 | `test/proposal-request.test.js` | 52 — propuesta formal: superficie, identificador, camino feliz, duplicados, estado de origen, manipulación, validación, Turnstile, rate limit y precio |
 | `test/proposal-ui.test.js` | 26 — contrato del navegador: el botón no vuelve al contacto genérico, a dónde va la petición y qué lleva |
 | `test/turnstile-widget.test.js` | 21 — ciclo de vida del widget: script y contenedor en los dos órdenes, tokens caducados, cerrar y reabrir, StrictMode |
-| **Total** | **511** (73 originales + 105 de la fase 2 + 228 de la fase 11 + 105 de la fase 12) |
+| `test/proposal-errors.test.js` | 41 — regla de fechas compartida, códigos HTTP diferenciados, error bajo el campo |
+| **Total** | **561** (73 originales + 105 de la fase 2 + 228 de la fase 11 + 155 de la fase 12) |
 
 ## FASE 9 — QA visual · **DONE**
 

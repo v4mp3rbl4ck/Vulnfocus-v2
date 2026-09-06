@@ -23,7 +23,7 @@
  *    destino y desde un conjunto cerrado de orígenes.
  */
 
-import { errorResponse, json, logEvent } from './http.js';
+import { errorResponse, json, logEvent, validationErrorResponse } from './http.js';
 import { readJsonPayload, truncate } from './request.js';
 import { parseAllowedHostnames, verifyTurnstile } from './turnstile.js';
 import { asTrimmedString } from './validate.js';
@@ -544,10 +544,20 @@ export async function handleProposalRequest(request, env, publicId, ctx) {
 
   // 5. Solo los tres campos que el cliente puede aportar. El resto del cuerpo no
   //    se lee: horas, precio, complejidad y alcance vienen de D1.
+  //
+  //    Aquí SÍ se dice qué campo falló, al contrario que en /api/quotes. La
+  //    razón de callarlo allí es que el validador recorre un catálogo de 49
+  //    preguntas y nombrar el campo describiría su forma interna; estos tres son
+  //    literalmente los que la persona tiene delante, así que ocultarlo solo
+  //    consigue que no sepa cuál corregir. El texto sale de un catálogo cerrado
+  //    (worker/lib/quote/proposal.js) y no interpola nada de la petición.
   const normalized = normalizeProposalInput(payload);
   if (!normalized.ok) {
-    logEvent('proposal_validation_failed', { field: normalized.field });
-    return errorResponse(400, 'Revisa los datos del formulario e inténtalo de nuevo');
+    logEvent('proposal_validation_failed', {
+      field: normalized.field,
+      reason: normalized.reason,
+    });
+    return validationErrorResponse(normalized);
   }
 
   // 6. Turnstile, fail closed, igual que en el resto de la superficie pública.
@@ -607,6 +617,10 @@ export async function handleProposalRequest(request, env, publicId, ctx) {
     return json(
       {
         status: 'error',
+        // Código estable para que la interfaz distinga este 409 de cualquier
+        // otro y lo cuente como lo que es: una oportunidad que ya lleva una
+        // persona, no un fallo del sistema.
+        error: 'proposal_conflict',
         message:
           'Esta cotización ya está en curso con nuestro equipo. Escríbenos y la retomamos.',
       },
