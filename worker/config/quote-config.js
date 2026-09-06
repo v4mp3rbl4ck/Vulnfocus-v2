@@ -46,7 +46,7 @@ export const QUOTE_CONFIG = {
   version: '1.0.0',
 
   /** Conversión de horas a días de trabajo para la duración presentada. */
-  hoursPerDay: 8,
+  hoursPerDay: 6,
 
   /** Días naturales que la estimación se considera vigente. */
   validityDays: 30,
@@ -54,7 +54,7 @@ export const QUOTE_CONFIG = {
   effort: {
     /** Suelo y techo del resultado final, en horas. */
     minHours: 8,
-    maxHours: 2000,
+    maxHours: 200,
 
     /** Límites del multiplicador de complejidad agregado. */
     multiplierRange: { min: 1, max: 2 },
@@ -64,7 +64,7 @@ export const QUOTE_CONFIG = {
 
     /** Umbrales de la etiqueta de complejidad mostrada. */
     complexityLabels: {
-      low: { maxHours: 40, maxMultiplier: 1.05 },
+      low: { maxHours: 45, maxMultiplier: 1.05 },
       high: { minHours: 160, minMultiplier: 1.2 },
     },
 
@@ -326,8 +326,8 @@ export const QUOTE_CONFIG = {
     currencies: {
       CLP: {
         // REQUIERE CONFIGURACIÓN DEL PROPIETARIO
-        hourlyRate: null,
-        minimumAmount: null,
+        hourlyRate: 61318,
+        minimumAmount: 2125000,
         taxRate: 0.19,
         taxIncluded: false,
         taxLabel: 'IVA',
@@ -337,12 +337,12 @@ export const QUOTE_CONFIG = {
       },
       USD: {
         // REQUIERE CONFIGURACIÓN DEL PROPIETARIO
-        hourlyRate: null,
-        minimumAmount: null,
-        taxRate: 0,
+        hourlyRate: 70,
+        minimumAmount: 2500,
+        taxRate: 0.19,
         taxIncluded: false,
-        taxLabel: '',
-        roundTo: 50,
+        taxLabel: 'IVA',
+        roundTo: 100,
         decimals: 0,
         locale: 'en-US',
       },
