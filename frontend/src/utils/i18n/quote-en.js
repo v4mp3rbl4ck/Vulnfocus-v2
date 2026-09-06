@@ -107,6 +107,12 @@ export const quoteEn = {
     privacy:
       'This information is attached to your existing quote. Do not include credentials, third-party personal data or classified information.',
 
+    captcha: {
+      loading: 'Loading verification…',
+      pending: 'Complete the verification to send.',
+      solved: 'Verification complete.',
+    },
+
     fields: {
       quoteNumber: 'Quote number',
       company: 'Company',

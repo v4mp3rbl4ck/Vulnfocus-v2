@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Check, Loader2, Send, X } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import useTurnstile from '../../hooks/useTurnstile';
+import { TURNSTILE_STATUS } from '../../lib/turnstileWidget';
 import { track } from '../../lib/analytics';
 import { fetchProposalPrefill, requestFormalProposal } from './quoteApi';
 
@@ -139,6 +140,9 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
         turnstileToken: turnstile.token,
       });
 
+      // El token es de un solo uso: se pide otro tanto si el envío salió bien
+      // como si no. Sin esto, un reintento tras un error reenviaría un token ya
+      // gastado y el Worker lo rechazaría con un 403 inexplicable.
       turnstile.reset();
 
       if (!result.ok) {
@@ -333,7 +337,25 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
             {turnstile.enabled && (
               <div className="form-group">
                 <div ref={turnstile.containerRef} />
-                {!turnstile.token && <p className="form-hint">{t.quote.contact.captchaPending}</p>}
+
+                {/* Tres estados, y el primero es el que faltaba: pedirle a
+                    alguien que complete una verificación que todavía no ha
+                    aparecido en pantalla es lo que obligaba a recargar. */}
+                {turnstile.status === TURNSTILE_STATUS.LOADING && (
+                  <p className="form-hint">
+                    <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                    {p.captcha.loading}
+                  </p>
+                )}
+                {turnstile.ready && !turnstile.solved && (
+                  <p className="form-hint">{p.captcha.pending}</p>
+                )}
+                {turnstile.solved && (
+                  <p className="form-hint form-hint-ok">
+                    <Check size={14} aria-hidden="true" />
+                    {p.captcha.solved}
+                  </p>
+                )}
               </div>
             )}
 
@@ -352,7 +374,9 @@ const ProposalRequestForm = ({ quote, onClose, onRequested }) => {
               <button
                 type="submit"
                 className="btn-primary"
-                disabled={status === 'sending' || (turnstile.enabled && !turnstile.token)}
+                // Sin widget montado no hay nada que resolver, y con un token
+                // gastado o caducado el envío moriría en un 403 del Worker.
+                disabled={status === 'sending' || (turnstile.enabled && !turnstile.solved)}
               >
                 {status === 'sending' ? (
                   <>

@@ -24,7 +24,7 @@ Regla: **nada se marca DONE sin estar implementado y validado** (tests o verific
 | 11 · Hardening final y preparación para producción | **DONE** |
 | 12 · Solicitud de propuesta formal desde la estimación | **DONE** |
 
-**Tests: 490 verdes (los 406 anteriores intactos + 84 nuevos) · Build: verde ·
+**Tests: 511 verdes (los 406 anteriores intactos + 105 nuevos) · Build: verde ·
 Sin regresiones conocidas.**
 
 ---
@@ -51,6 +51,7 @@ veía—, era un flujo roto.
 | 12-5 | Idempotencia garantizada por la base: `UNIQUE(quote_id)` en `quote_proposal_requests` | Test de cinco intentos seguidos → una sola fila |
 | 12-6 | Aviso de Telegram con el formato acordado y correos —acuse al cliente y alerta interna con su texto libre— | `worker/lib/telegram.js`, `integrations/email/templates.js` |
 | 12-7 | Formulario específico en la propia estimación, con el resumen a la vista. Ya no se navega al contacto genérico | `frontend/src/features/quote/ProposalRequestForm.jsx`, 26 tests |
+| 12-8 | **Corrección del ciclo de vida de Turnstile.** El widget no se montaba si el contenedor aparecía después del script —el caso del diálogo que primero consulta la API—, y había que recargar la página | `frontend/src/lib/turnstileWidget.js`, 21 tests |
 
 ### Lo que el cliente NO puede hacer
 
@@ -68,10 +69,26 @@ de las operaciones —que evita disparar la cascada de `quote_status_events`— 
 fijado por un test. Copia de seguridad obligatoria antes de aplicarla:
 `docs/CLOUDFLARE_MANUAL_ACTIONS.md` → M-01.
 
+### Turnstile: por qué había que recargar la página
+
+El widget se montaba una sola vez, en el efecto de montaje del hook, y exigía
+que su contenedor ya estuviera en el DOM en ese instante. El formulario de
+propuesta vive en un diálogo que primero consulta la API, así que en el montaje
+su contenedor todavía no existe; y como `window.turnstile` sí solía existir —el
+script llega cacheado—, el hook tomaba el camino rápido y **no instalaba ningún
+reintento**. El widget no se montaba nunca.
+
+El ciclo de vida se movió a `frontend/src/lib/turnstileWidget.js`, fuera de
+React: una máquina de estados con dos entradas asíncronas que pueden llegar en
+cualquier orden. `ensureRendered()` es idempotente y la invocan tanto el nodo al
+aparecer (callback ref) como un sondeo que se detiene solo. Se añaden tres
+estados visibles —cargando, pendiente, completada— porque pedirle a alguien que
+complete una verificación que aún no ha aparecido era el síntoma exacto.
+
 ### Verificación ejecutada
 
 ```
-npm test                      490 passed (16 files)   exit 0
+npm test                      511 passed (17 files)   exit 0
 npm run build:frontend        Compiled successfully   exit 0
 npm run build:site:check      16 rutas + 404.html     exit 0
 npm run deploy:dry-run        151,32 KiB · 38 assets · 4 limitadores · D1
@@ -234,7 +251,8 @@ verificaciones ejecutadas contra un despliegue real.
 | `test/seo-assets.test.js` | 18 — existencia de assets y metadatos |
 | `test/proposal-request.test.js` | 52 — propuesta formal: superficie, identificador, camino feliz, duplicados, estado de origen, manipulación, validación, Turnstile, rate limit y precio |
 | `test/proposal-ui.test.js` | 26 — contrato del navegador: el botón no vuelve al contacto genérico, a dónde va la petición y qué lleva |
-| **Total** | **490** (73 originales + 105 de la fase 2 + 228 de la fase 11 + 84 de la fase 12) |
+| `test/turnstile-widget.test.js` | 21 — ciclo de vida del widget: script y contenedor en los dos órdenes, tokens caducados, cerrar y reabrir, StrictMode |
+| **Total** | **511** (73 originales + 105 de la fase 2 + 228 de la fase 11 + 105 de la fase 12) |
 
 ## FASE 9 — QA visual · **DONE**
 

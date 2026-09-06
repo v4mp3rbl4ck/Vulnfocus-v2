@@ -109,6 +109,12 @@ export const quoteEs = {
     privacy:
       'Estos datos se asocian a tu cotización existente. No incluyas credenciales, datos personales de terceros ni información clasificada.',
 
+    captcha: {
+      loading: 'Cargando la verificación…',
+      pending: 'Completa la verificación para poder enviar.',
+      solved: 'Verificación completada.',
+    },
+
     fields: {
       quoteNumber: 'Número de cotización',
       company: 'Empresa',

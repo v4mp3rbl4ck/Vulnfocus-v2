@@ -2616,6 +2616,13 @@ main:focus {
   gap: 20px;
 }
 
+.form-hint-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand-success);
+}
+
 .proposal-actions {
   display: flex;
   flex-wrap: wrap;

@@ -114,7 +114,8 @@ describe("El formulario no inventa datos", () => {
   it("conserva el honeypot y la verificación de Turnstile", () => {
     expect(proposalForm).toContain('className="honeypot-field"');
     expect(proposalForm).toContain("turnstile.containerRef");
-    expect(proposalForm).toContain("turnstile.enabled && !turnstile.token");
+    // El ciclo de vida completo del widget se prueba en turnstile-widget.test.js.
+    expect(proposalForm).toContain("turnstile.enabled && !turnstile.solved");
   });
 
   it("el diálogo no se imprime", () => {
