@@ -62,5 +62,6 @@ DELETE FROM contact_submissions
  WHERE status IN ('new', 'read')
    AND created_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-24 months');
 
--- El histórico de estados NO necesita purga propia: la clave foránea de
--- quote_status_events es ON DELETE CASCADE, así que se va con su cotización.
+-- Ni el histórico de estados ni las solicitudes de propuesta necesitan purga
+-- propia: quote_status_events y quote_proposal_requests tienen su clave foránea
+-- ON DELETE CASCADE, así que se van con la cotización a la que pertenecen.

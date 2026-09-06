@@ -66,6 +66,58 @@ export function buildQuoteTelegramText(quote) {
     : text;
 }
 
+/**
+ * Solicitud de propuesta formal sobre una cotización que YA existe.
+ *
+ * Mismo criterio que el resto del fichero: texto plano, sin parse_mode, y sin
+ * texto libre del cliente. Los comentarios, la fecha objetivo en detalle y las
+ * notas de alcance van al correo interno y a D1; aquí solo se indica que
+ * existen, porque Telegram es un canal de terceros y este aviso solo sirve para
+ * decidir si hay que ponerse con ello ahora.
+ *
+ * El precio aparece únicamente si el motor lo calculó y el precio sigue
+ * habilitado: quien decide eso es el llamante (visiblePricing en el handler),
+ * aquí solo se refleja.
+ */
+export function buildProposalRequestTelegramText(request, links = {}) {
+  const price = request.pricing?.available
+    ? `${formatAmount(request.pricing.min)} - ${formatAmount(request.pricing.max)} ${request.pricing.currency}`
+    : null;
+
+  const lines = [
+    "Nueva solicitud de propuesta formal",
+    "",
+    `Cotizacion: ${request.quoteNumber}`,
+    `Cliente: ${request.contactName}`,
+    `Empresa: ${request.company}`,
+    `Email: ${request.email}`,
+    `Telefono: ${request.phone || "(no indicado)"}`,
+    "",
+    `Servicio(s): ${serviceList(request.services)}`,
+    `Alcance resumido: ${request.scopeSummary || "—"}`,
+    `Complejidad: ${complexityLabel(request.complexity)}`,
+    `Horas estimadas: ${request.minHours}-${request.maxHours} h (${request.minDays}-${request.maxDays} dias)`,
+  ];
+
+  // Sin tarifa configurada NO se escribe la linea: un "Precio: -" invita a
+  // pensar que hubo un fallo, cuando lo que pasa es que no hay precio que dar.
+  if (price) lines.push(`Precio: ${price}`);
+
+  if (request.targetDate) lines.push(`Fecha objetivo: ${request.targetDate}`);
+  if (request.notes || request.scopeNotes) {
+    lines.push("Incluye comentarios del cliente: ver la ficha");
+  }
+
+  lines.push("");
+  if (links.estimate) lines.push(`Estimacion: ${links.estimate}`);
+  lines.push(`Fecha: ${request.requestedAt}`);
+
+  const text = lines.join("\n");
+  return text.length > TELEGRAM_MAX_MESSAGE
+    ? `${text.slice(0, TELEGRAM_MAX_MESSAGE)}\n[...truncado]`
+    : text;
+}
+
 /** Separador de miles sin depender de Intl ni de la moneda. */
 function formatAmount(value) {
   return String(Math.round(Number(value) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");

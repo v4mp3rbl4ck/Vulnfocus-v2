@@ -30,6 +30,7 @@
 const STATUS_LABELS = {
   NEW: 'Nueva',
   CONTACTED: 'Contactada',
+  PROPOSAL_REQUESTED: 'Propuesta solicitada',
   PROPOSAL_SENT: 'Propuesta enviada',
   ACCEPTED: 'Aceptada',
   REJECTED: 'Rechazada',
@@ -94,6 +95,7 @@ const STYLES = `
   }
   .pill.NEW { border-color: var(--accent); color: #7dc0ff; }
   .pill.CONTACTED { border-color: var(--warn); color: #fcd34d; }
+  .pill.PROPOSAL_REQUESTED { border-color: #f0abfc; color: #f5d0fe; }
   .pill.PROPOSAL_SENT { border-color: #a78bfa; color: #c4b5fd; }
   .pill.ACCEPTED { border-color: var(--ok); color: #86efac; }
   .pill.REJECTED { border-color: var(--danger); color: #fca5a5; }

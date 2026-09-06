@@ -89,6 +89,59 @@ export const quoteEs = {
     loading: 'Recuperando la estimación…',
   },
 
+  proposal: {
+    title: 'Solicitar propuesta formal',
+    summaryTitle: 'Tu estimación',
+    help: 'Ya tenemos tu alcance y tus datos de contacto. Solo necesitamos lo que falte por saber; todo lo de abajo es opcional.',
+    prefilledNote:
+      'Estos datos vienen de tu cotización. No hace falta que los vuelvas a escribir.',
+    loading: 'Recuperando tu cotización…',
+    sending: 'Enviando…',
+    submit: 'Enviar solicitud',
+    cancel: 'Cancelar',
+    close: 'Cerrar',
+    closeAction: 'Entendido',
+    requestedBadge: 'Propuesta solicitada',
+    success: 'Hemos recibido tu solicitud de propuesta formal.',
+    alreadyRequested: 'Ya habíamos recibido esta solicitud. No hemos creado una segunda.',
+    nextSteps:
+      'Revisaremos el alcance y te contactaremos para confirmarlo antes de enviarte la propuesta formal. Te llegará un acuse al correo de la cotización.',
+    privacy:
+      'Estos datos se asocian a tu cotización existente. No incluyas credenciales, datos personales de terceros ni información clasificada.',
+
+    fields: {
+      quoteNumber: 'Número de cotización',
+      company: 'Empresa',
+      contactName: 'Contacto',
+      email: 'Email',
+      phone: 'Teléfono',
+      scope: 'Alcance',
+      complexity: 'Complejidad',
+      effort: 'Esfuerzo estimado',
+      price: 'Rango estimado',
+    },
+
+    form: {
+      notes: 'Comentarios adicionales',
+      notesHelp: 'Cualquier cosa que debamos tener en cuenta al preparar la propuesta.',
+      targetDate: 'Fecha objetivo de inicio',
+      targetDateHelp: 'Si tienes una fecha en mente, la tenemos en cuenta al planificar.',
+      scopeNotes: 'Información adicional de alcance',
+      scopeNotesHelp:
+        'Sistemas, ventanas de prueba, restricciones o cualquier detalle que no cupiera en el formulario.',
+    },
+
+    errors: {
+      generic: 'No fue posible enviar la solicitud. Inténtalo de nuevo.',
+      network: 'No hay conexión con el servidor. Comprueba tu red e inténtalo de nuevo.',
+      notFound: 'No encontramos esa cotización. Es posible que el enlace sea incorrecto o haya caducado.',
+      rateLimited: 'Has hecho demasiados intentos. Espera un minuto e inténtalo de nuevo.',
+      verification: 'No fue posible verificar la solicitud. Recarga la página e inténtalo de nuevo.',
+      inProgress:
+        'Esta cotización ya está en curso con nuestro equipo. Escríbenos y la retomamos.',
+    },
+  },
+
   includes: {
     manual_testing: 'Testing manual, no solo escaneo automatizado',
     executive_report: 'Informe ejecutivo',

@@ -5,6 +5,7 @@ import pkg from "../package.json";
 import { QUOTE_CONFIG } from "../worker/config/quote-config.js";
 import { QUOTE_STATUSES } from "../worker/lib/quote/lifecycle.js";
 import migration0002 from "../migrations/0002_quotes.sql?raw";
+import migration0004 from "../migrations/0004_proposal_requests.sql?raw";
 import devVarsExample from "../.dev.vars.example?raw";
 import frontendEnvProduction from "../frontend/.env.production?raw";
 
@@ -207,10 +208,48 @@ describe("D1", () => {
 
   it("los estados del CHECK de D1 coinciden con la máquina de estados", () => {
     // Si divergen, una transición válida en la aplicación fallaría en la base.
-    const check = /CHECK \(status IN \(([^)]+)\)\)/.exec(migration0002);
-    expect(check).toBeTruthy();
-    const declared = check[1].split(",").map((v) => v.trim().replace(/^'|'$/g, ""));
+    //
+    // El CHECK vigente es el de la ÚLTIMA migración que lo define: 0002 creó la
+    // tabla y 0004 la reconstruyó para ampliar la restricción. Compararlo con
+    // 0002 daría verde para siempre aunque el estado nuevo no hubiera llegado
+    // nunca a la base.
+    const vigente = [migration0002, migration0004]
+      .map((sql) => /CHECK \(status IN \(([^)]+)\)\)/.exec(sql))
+      .filter(Boolean)
+      .pop();
+
+    expect(vigente).toBeTruthy();
+    const declared = vigente[1].split(",").map((v) => v.trim().replace(/^'|'$/g, ""));
     expect(declared.sort()).toEqual([...QUOTE_STATUSES].sort());
+  });
+
+  it("0004 reconstruye la tabla sin llevarse por delante el histórico", () => {
+    // `quote_status_events` referencia `quotes` con ON DELETE CASCADE: soltar la
+    // tabla padre con esa clave foránea armada borraría la auditoría entera. El
+    // orden del fichero es la única defensa, y por eso se fija aquí.
+    const copia = migration0004.indexOf("CREATE TABLE quote_status_events_backup");
+    const sueltaHistorico = migration0004.indexOf("DROP TABLE quote_status_events;");
+    const sueltaQuotes = migration0004.indexOf("DROP TABLE quotes;");
+    const restaura = migration0004.indexOf("INSERT INTO quote_status_events (");
+
+    for (const [nombre, posicion] of Object.entries({
+      copia,
+      sueltaHistorico,
+      sueltaQuotes,
+      restaura,
+    })) {
+      expect(posicion, nombre).toBeGreaterThan(-1);
+    }
+
+    expect(copia).toBeLessThan(sueltaHistorico);
+    expect(sueltaHistorico).toBeLessThan(sueltaQuotes);
+    expect(sueltaQuotes).toBeLessThan(restaura);
+  });
+
+  it("la solicitud de propuesta no puede duplicarse en la base", () => {
+    // La idempotencia no depende de que el Worker se acuerde de comprobarla.
+    expect(migration0004).toMatch(/CREATE TABLE IF NOT EXISTS quote_proposal_requests/);
+    expect(migration0004).toMatch(/quote_id\s+TEXT NOT NULL UNIQUE/);
   });
 });
 

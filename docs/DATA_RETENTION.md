@@ -41,9 +41,18 @@
 
 | Columna | Dato personal | Por qué existe |
 |---|---|---|
-| `actor_email` | **sí, INTERNO** | Es personal de VulnFocus, no del cliente. Sin él el histórico no sirve. |
+| `actor_email` | **sí** | Con `actor_source='admin'`, personal de VulnFocus. Con `'client'`, el correo que ya está en la cotización: no es un dato nuevo, y se va con ella. |
+| `actor_source` | no | `admin`, `client` o `system` |
 | `note` | posible | Nota interna, máximo 500 caracteres |
 | resto | no | Cotización, estados y fecha |
+
+### `quote_proposal_requests` — solicitudes de propuesta formal
+
+| Columna | Dato personal | Por qué existe |
+|---|---|---|
+| `notes`, `scope_notes` | **posible** | Texto libre del cliente, máximo 1000 cada uno. Puede describir su infraestructura |
+| `target_date` | no | Fecha objetivo |
+| resto | no | Cotización, canal y fecha |
 
 ### Lo que NO se guarda, y es deliberado
 
@@ -70,6 +79,7 @@
 | `quotes` en `ACCEPTED` | **conservar** mientras dure la relación + lo que exija la normativa contable | Respaldo del contrato |
 | `quotes` en `NEW`, `CONTACTED`, `PROPOSAL_SENT` | **24 meses** sin actividad → `EXPIRED`, y luego el plazo anterior | |
 | `quote_status_events` | **igual que su cotización** (cascade) | Un evento huérfano solo conserva un correo |
+| `quote_proposal_requests` | **igual que su cotización** (cascade) | Su texto libre describe el alcance de esa cotización y no significa nada sin ella |
 | `scope_json` de cotizaciones cerradas | **anonimizar a los 12 meses** | Describe infraestructura de terceros; su valor pasado ese plazo es estadístico |
 | Copias de `npm run db:backup` | **90 días**, cifradas | Contienen todo lo anterior |
 
@@ -139,8 +149,9 @@ Tres razones, en orden:
   porque contiene datos personales.
 - **`expires_at`** en `quotes` — ya se calcula al crear la cotización
   (`validityDays`, hoy 30 días). Es la señal para pasar a `EXPIRED`.
-- **`quote_status_events`** con `ON DELETE CASCADE` — el histórico se va con su
-  cotización, sin dejar correos huérfanos.
+- **`quote_status_events`** y **`quote_proposal_requests`** con
+  `ON DELETE CASCADE` — el histórico y la solicitud se van con su cotización, sin
+  dejar correos ni descripciones de infraestructura huérfanas.
 - **Estado `EXPIRED`** en la máquina de estados, con vuelta a `CONTACTED` si el
   cliente reaparece.
 

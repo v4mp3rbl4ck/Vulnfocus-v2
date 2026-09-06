@@ -11,6 +11,8 @@ resultado de la revisión de la superficie añadida por el cotizador.
 | POST | `/api/contact` | — | Turnstile + rate limit 5/60s + honeypot |
 | POST | `/api/quotes` | — | Turnstile + rate limit 3/60s + honeypot |
 | GET | `/api/quotes/:public_id` | `public_id` de 128 bits | rate limit 30/60s |
+| GET | `/api/quotes/:public_id/request-proposal` | `public_id` de 128 bits | rate limit 30/60s |
+| POST | `/api/quotes/:public_id/request-proposal` | `public_id` de 128 bits | Turnstile + rate limit 3/60s + honeypot |
 | GET | `/api/health` | — | — |
 | * | resto de `/api/*` | — | 404 (deny by default) |
 
@@ -118,6 +120,8 @@ apps negativo / desmesurado              400
 GET /api/quotes/<32 hex inexistente>     404
 GET /api/quotes/VF-2026-000001           404
 GET /api/quotes/../../etc/passwd         404
+GET /api/quotes/<32 hex>/breakdown       404
+GET /api/quotes/<32 hex>/status          404
 POST|PUT|DELETE|PATCH sobre una cotización 405  → el estado sigue en NEW
 ```
 

@@ -2491,6 +2491,175 @@ main:focus {
   color: var(--brand-danger);
 }
 
+/* --------------------------------------------------------------------------
+   SOLICITUD DE PROPUESTA FORMAL
+   Diálogo sobre la propia estimación. No es una página nueva a propósito: el
+   resumen de lo que se está pidiendo tiene que seguir a la vista, y salir del
+   diálogo devuelve a la estimación sin perder nada.
+   -------------------------------------------------------------------------- */
+
+.proposal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.proposal-dialog {
+  width: 100%;
+  max-width: 640px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-medium);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.proposal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.proposal-title {
+  font-size: 22px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.proposal-close {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 6px;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.proposal-close:hover {
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.proposal-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+.proposal-summary {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  padding: 20px;
+}
+
+.proposal-summary-title {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+}
+
+.proposal-summary-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.proposal-summary-list > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.proposal-summary-list dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.proposal-summary-list dd {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 0;
+  text-align: right;
+}
+
+.proposal-prefilled-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 14px 0 0;
+}
+
+.proposal-help {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.proposal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.proposal-done {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.proposal-next {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .proposal-overlay {
+    padding: 0;
+  }
+
+  .proposal-dialog {
+    min-height: 100%;
+    padding: 24px 20px;
+    border: none;
+  }
+
+  .proposal-summary-list > div {
+    flex-direction: column;
+  }
+
+  .proposal-summary-list dd {
+    text-align: left;
+  }
+
+  .proposal-actions > * {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .quote-wizard,
   .estimate {

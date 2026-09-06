@@ -6,6 +6,8 @@
  *   POST /api/contact            valida, Turnstile, D1, notificaciones
  *   POST /api/quotes             cotizador: valida, Turnstile, calcula, D1, notificaciones
  *   GET  /api/quotes/:public_id  recupera una estimación por identificador no predecible
+ *   GET  /api/quotes/:public_id/request-proposal   datos para el formulario de propuesta
+ *   POST /api/quotes/:public_id/request-proposal   pide la propuesta formal de ESA cotización
  *   GET  /api/health             healthcheck
  *
  * Superficie PRIVADA, deshabilitada por defecto (`ADMIN_ENABLED="false"`):
@@ -33,7 +35,12 @@ import { readJsonPayload, truncate } from "./lib/request.js";
 import { asTrimmedString, validateContact } from "./lib/validate.js";
 import { parseAllowedHostnames, verifyTurnstile } from "./lib/turnstile.js";
 import { createNotificationService } from "./integrations/notifications.js";
-import { handleQuoteCreate, handleQuoteRead } from "./lib/quotes-handler.js";
+import {
+  handleProposalPrefill,
+  handleProposalRequest,
+  handleQuoteCreate,
+  handleQuoteRead,
+} from "./lib/quotes-handler.js";
 import { adminEnabled, handleAdmin } from "./lib/admin/handler.js";
 import { adminPageResponse } from "./lib/admin/ui.js";
 import { authorizeAdmin } from "./lib/access.js";
@@ -174,17 +181,37 @@ export default {
       return methodNotAllowed("POST");
     }
 
-    // GET /api/quotes/<public_id>. Un único segmento: nada de rutas anidadas
-    // que pudieran convertirse en superficie administrativa por accidente.
+    // /api/quotes/<public_id> y su única subruta declarada.
+    //
+    // Se admite como mucho un segmento más, y solo si es exactamente
+    // "request-proposal": cualquier otro nombre —"status", "breakdown", "all"—
+    // devuelve 404 en lugar de convertirse en superficie nueva por accidente.
     if (path.startsWith("/api/quotes/")) {
-      const rest = path.slice("/api/quotes/".length);
-      if (rest.length === 0 || rest.includes("/")) {
+      const [publicId, action, ...extra] = path.slice("/api/quotes/".length).split("/");
+      if (!publicId || extra.length > 0) {
         return errorResponse(404, "Recurso no encontrado");
       }
-      if (request.method === "GET" || request.method === "HEAD") {
-        return handleQuoteRead(request, env, rest);
+
+      if (action === undefined) {
+        if (request.method === "GET" || request.method === "HEAD") {
+          return handleQuoteRead(request, env, publicId);
+        }
+        return methodNotAllowed("GET");
       }
-      return methodNotAllowed("GET");
+
+      // Solicitud de propuesta formal sobre una cotización que YA existe. No
+      // crea cotizaciones: por eso cuelga del identificador y no de /api/quotes.
+      if (action === "request-proposal") {
+        if (request.method === "GET" || request.method === "HEAD") {
+          return handleProposalPrefill(request, env, publicId);
+        }
+        if (request.method === "POST") {
+          return handleProposalRequest(request, env, publicId, ctx);
+        }
+        return methodNotAllowed("GET, POST");
+      }
+
+      return errorResponse(404, "Recurso no encontrado");
     }
 
     // --- Administración ---------------------------------------------------

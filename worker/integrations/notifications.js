@@ -2,8 +2,9 @@
  * NOTIFICATION SERVICE — punto único de salida de avisos.
  *
  * El código de negocio no sabe si detrás hay Telegram, correo o ambos: llama a
- * `quoteCreated()` o a `contactReceived()` y se acabó. Cambiar de proveedor de
- * correo, o añadir un canal nuevo, se hace aquí y en `integrations/email/`.
+ * `quoteCreated()`, `proposalRequested()` o `contactReceived()` y se acabó.
+ * Cambiar de proveedor de correo, o añadir un canal nuevo, se hace aquí y en
+ * `integrations/email/`.
  *
  * Dos garantías que no se pueden romper:
  *
@@ -14,9 +15,20 @@
  */
 
 import { logEvent } from '../lib/http.js';
-import { buildQuoteTelegramText, sendTelegramNotification, sendTelegramText } from '../lib/telegram.js';
+import {
+  buildProposalRequestTelegramText,
+  buildQuoteTelegramText,
+  sendTelegramNotification,
+  sendTelegramText,
+} from '../lib/telegram.js';
 import { createEmailAdapter } from './email/index.js';
-import { contactConfirmation, internalQuoteAlert, quoteConfirmation } from './email/templates.js';
+import {
+  contactConfirmation,
+  internalProposalRequestAlert,
+  internalQuoteAlert,
+  proposalRequestConfirmation,
+  quoteConfirmation,
+} from './email/templates.js';
 
 /** Ejecuta un canal aislando su fallo. */
 async function safely(label, id, fn) {
@@ -51,6 +63,35 @@ export function createNotificationService(env = {}) {
         internalTo
           ? safely('email_internal', quote.quoteNumber, () =>
               email.send(internalQuoteAlert(quote, internalTo)),
+            )
+          : Promise.resolve({ ok: false, reason: 'internal-recipient-not-configured' }),
+      ]);
+
+      return { telegram: results[0], clientEmail: results[1], internalEmail: results[2] };
+    },
+
+    /**
+     * El cliente ha pedido la propuesta formal de una cotización que ya existe.
+     *
+     * Mismos tres canales y la misma independencia entre ellos que en
+     * `quoteCreated`. Lo que cambia es el reparto: el texto libre del cliente va
+     * al correo interno, nunca a Telegram (ver worker/lib/telegram.js).
+     */
+    async proposalRequested(request, links = {}) {
+      const results = await Promise.all([
+        safely('telegram', request.quoteNumber, () =>
+          sendTelegramText(
+            buildProposalRequestTelegramText(request, links),
+            env,
+            request.quoteNumber,
+          ),
+        ),
+        safely('email_client', request.quoteNumber, () =>
+          email.send(proposalRequestConfirmation(request, links)),
+        ),
+        internalTo
+          ? safely('email_internal', request.quoteNumber, () =>
+              email.send(internalProposalRequestAlert(request, internalTo, links)),
             )
           : Promise.resolve({ ok: false, reason: 'internal-recipient-not-configured' }),
       ]);

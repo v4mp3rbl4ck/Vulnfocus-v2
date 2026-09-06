@@ -1,14 +1,20 @@
 # Esquema de D1
 
 Migraciones en `migrations/`, aplicadas con `npm run db:migrate` (remoto) o
-`npm run db:migrate:local`. **Todas son aditivas e idempotentes**: ninguna altera
-ni borra estructuras ni datos existentes, y aplicarlas dos veces no tiene efecto.
+`npm run db:migrate:local`.
 
 | Fichero | Contenido | Estado en producción |
 |---|---|---|
 | `0001_contact_submissions.sql` | Formulario de contacto | Aplicada |
 | `0002_quotes.sql` | Cotizaciones y correlativo anual | Verificar |
 | `0003_quote_status_events.sql` | Histórico de cambios de estado (administración) | **Pendiente** |
+| `0004_proposal_requests.sql` | Solicitud de propuesta formal, estado `PROPOSAL_REQUESTED` y `actor_source` | **Pendiente** |
+
+De la `0001` a la `0003` son aditivas e idempotentes. **La `0004` no**: reconstruye
+`quotes` porque SQLite no permite modificar un `CHECK` con `ALTER TABLE`, y el
+estado nuevo tiene que entrar en la restricción. Conserva todas las filas —de
+`quotes` y del histórico— y el orden del fichero es parte de esa garantía: ver
+[Reconstruir `quotes` sin perder el histórico](#reconstruir-quotes-sin-perder-el-histórico).
 
 ## `contact_submissions`
 
@@ -42,7 +48,7 @@ Sin cambios respecto a la versión anterior.
 | `complexity` | TEXT NOT NULL | CHECK `LOW` · `MEDIUM` · `HIGH` |
 | `estimated_hours`, `min_hours`, `max_hours` | INTEGER NOT NULL | |
 | `currency`, `min_price`, `max_price` | TEXT / INTEGER | `NULL` si el precio está desactivado |
-| `status` | TEXT NOT NULL | CHECK `NEW` · `CONTACTED` · `PROPOSAL_SENT` · `ACCEPTED` · `REJECTED` · `EXPIRED`. **Nace siempre en `NEW`** |
+| `status` | TEXT NOT NULL | CHECK `NEW` · `CONTACTED` · `PROPOSAL_REQUESTED` · `PROPOSAL_SENT` · `ACCEPTED` · `REJECTED` · `EXPIRED`. **Nace siempre en `NEW`** |
 | `engine_version` | TEXT | versión de `quote-config.js` con la que se calculó |
 | `user_agent` | TEXT | truncado a 256 |
 | `created_at`, `updated_at`, `expires_at` | TEXT NOT NULL / TEXT | ISO 8601 UTC |
@@ -88,7 +94,8 @@ de los cambios de estado que hace la administración.
 | `quote_number` | TEXT NOT NULL | Redundante a propósito: permite leer el histórico sin unir |
 | `from_status` | TEXT NOT NULL | Estado de origen |
 | `to_status` | TEXT NOT NULL | Estado de destino |
-| `actor_email` | TEXT NOT NULL | Identidad **verificada por Cloudflare Access**. Personal interno, nunca del cliente |
+| `actor_email` | TEXT NOT NULL | Con `actor_source='admin'`, identidad **verificada por Cloudflare Access**. Con `'client'`, el correo que ya está en `quotes.email` |
+| `actor_source` | TEXT NOT NULL | CHECK `admin` · `client` · `system`. Por defecto `admin`. Añadida por la `0004` |
 | `note` | TEXT | Nota interna, máximo 500 caracteres. **Nunca** se devuelve por una ruta pública |
 | `created_at` | TEXT NOT NULL | ISO 8601 UTC |
 
@@ -108,10 +115,40 @@ La clave foránea es `ON DELETE CASCADE`: si algún día se purga una cotizació
 (`docs/DATA_RETENTION.md`), su histórico se va con ella. Un evento huérfano no
 aporta nada y sí conserva una dirección de correo.
 
+## `quote_proposal_requests`
+
+Añadida por `migrations/0004_proposal_requests.sql`. Una fila por cotización cuyo
+cliente ha pedido la propuesta formal desde `/estimacion?id=<public_id>`.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `id` | TEXT PK | UUID v4 |
+| `quote_id` | TEXT NOT NULL **UNIQUE** | FK → `quotes(id)` **ON DELETE CASCADE** |
+| `quote_number` | TEXT NOT NULL | Redundante a propósito, igual que en el histórico |
+| `notes` | TEXT | Comentarios del cliente, máximo 1000 |
+| `target_date` | TEXT | Fecha objetivo `AAAA-MM-DD`, validada contra el calendario |
+| `scope_notes` | TEXT | Alcance adicional, máximo 1000 |
+| `source` | TEXT NOT NULL | Canal. Hoy solo `public_estimate` |
+| `created_at` | TEXT NOT NULL | ISO 8601 UTC |
+
+### Por qué `UNIQUE(quote_id)`
+
+Es la garantía de que una cotización no puede generar dos solicitudes ni dos
+avisos, y **no depende de que el Worker se acuerde de comprobarlo**: si dos
+peticiones llegan a la vez, la segunda rompe la restricción, su lote entero se
+deshace y el endpoint responde de forma idempotente con la solicitud original.
+
+### Qué NO se guarda aquí
+
+Horas, complejidad, alcance calculado ni precio. Todo eso está en `quotes`, lo
+calculó el motor, y duplicarlo permitiría que las dos copias divergieran. Lo que
+el navegador envíe en esos campos no se lee.
+
 ## Aplicar las migraciones en producción
 
-Las tres son **aditivas e idempotentes** (`CREATE TABLE IF NOT EXISTS`). Ninguna
-altera ni borra datos existentes; aplicarlas dos veces no tiene efecto.
+De la `0001` a la `0003` son **aditivas e idempotentes** (`CREATE TABLE IF NOT
+EXISTS`): no alteran ni borran datos, y aplicarlas dos veces no tiene efecto. La
+`0004` reconstruye `quotes` y se aplica una sola vez; D1 lleva el registro.
 
 ```bash
 # 1. Ver qué falta por aplicar. No modifica nada.
@@ -127,12 +164,36 @@ npm run db:migrate
 # 4. Verificar.
 npx wrangler d1 execute vulnfocus-production --remote --command \
   "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
-# → contact_submissions, quote_counters, quote_status_events, quotes
+# → contact_submissions, quote_counters, quote_proposal_requests,
+#   quote_status_events, quotes
 
 npx wrangler d1 execute vulnfocus-production --remote --command \
   "SELECT COUNT(*) FROM quote_status_events;"
 # → 0, sin error
 ```
+
+### Reconstruir `quotes` sin perder el histórico
+
+La `0004` tiene que ampliar el `CHECK` de `quotes.status` para admitir
+`PROPOSAL_REQUESTED`, y SQLite no permite modificar un `CHECK` con `ALTER TABLE`:
+hay que recrear la tabla. El detalle que decide si esa operación conserva la
+auditoría o la destruye es el **orden**:
+
+`quote_status_events` referencia `quotes` con `ON DELETE CASCADE`. Con las claves
+foráneas activas, un `DROP TABLE` ejecuta un `DELETE` implícito, y ese `DELETE`
+dispara la cascada: soltar `quotes` con el histórico todavía apuntando a ella
+**borraría la auditoría entera**. Por eso la migración, en este orden:
+
+1. copia `quote_status_events` a una tabla sin restricciones;
+2. suelta el histórico —es la tabla hija, no arrastra a nadie—;
+3. reconstruye `quotes` con el `CHECK` ampliado y restaura sus filas;
+4. recrea el histórico, ahora con `actor_source`, y devuelve sus filas;
+5. crea `quote_proposal_requests`.
+
+`test/config.test.js` fija ese orden. Antes de aplicarla en producción, **haz la
+copia de seguridad** (`npm run db:backup`): el rollback es restaurar esa copia,
+porque volver atrás con SQL exigiría reconstruir la tabla otra vez y solo sería
+posible si ninguna fila estuviera ya en `PROPOSAL_REQUESTED`.
 
 En local, contra la D1 de Miniflare:
 

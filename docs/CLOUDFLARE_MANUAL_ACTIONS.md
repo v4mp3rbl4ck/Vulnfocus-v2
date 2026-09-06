@@ -44,16 +44,27 @@ intervención.
   npm run db:backup                                               # copia previa
   npm run db:migrate                                              # aplicar
   ```
-  Pendiente de aplicar: **`0003_quote_status_events.sql`** (nueva en esta fase).
-  Comprobar también que `0002_quotes.sql` está aplicada.
+  Pendientes de aplicar: **`0003_quote_status_events.sql`** y
+  **`0004_proposal_requests.sql`**. Comprobar también que `0002_quotes.sql` está
+  aplicada.
 - **RESULTADO ESPERADO:** `migrations list` no devuelve ninguna pendiente y
   ```bash
   npx wrangler d1 execute vulnfocus-production --remote \
     --command "SELECT COUNT(*) FROM quote_status_events;"
+  npx wrangler d1 execute vulnfocus-production --remote \
+    --command "SELECT COUNT(*) FROM quote_proposal_requests;"
   ```
-  responde `0` sin error.
-- **RIESGO:** ninguno. Las tres migraciones son aditivas e idempotentes
-  (`CREATE TABLE IF NOT EXISTS`). No tocan `contact_submissions` ni `quotes`.
+  responden `0` sin error.
+- **RIESGO:** de la `0001` a la `0003`, ninguno: son aditivas e idempotentes
+  (`CREATE TABLE IF NOT EXISTS`) y no tocan `contact_submissions` ni `quotes`.
+  **La `0004` sí reconstruye `quotes`**, porque SQLite no permite ampliar un
+  `CHECK` con `ALTER TABLE` y el estado `PROPOSAL_REQUESTED` tiene que entrar en
+  la restricción. Conserva todas las filas de `quotes` y del histórico —el orden
+  del fichero está pensado para que la cascada de `quote_status_events` no se
+  dispare, y hay un test que lo fija—, pero es la primera migración del proyecto
+  que no es aditiva: **la copia de seguridad del paso 2 no es opcional**. El
+  rollback es restaurar esa copia (`docs/D1_SCHEMA.md` → Reconstruir `quotes`
+  sin perder el histórico).
 - **ESTADO:** ⛔ **NO APLICADA DESDE ESTE ENTORNO.** No hay credenciales de
   Cloudflare aquí y no se ha simulado su aplicación.
 
@@ -215,7 +226,7 @@ intervención.
 
 | # | Acción | Bloqueante | Estado |
 |---|---|---|---|
-| M-01 | Migración D1 `0003` | **Sí** | ⛔ Pendiente |
+| M-01 | Migraciones D1 `0003` y `0004` (la `0004` reconstruye `quotes`: copia previa obligatoria) | **Sí** | ⛔ Pendiente |
 | M-02 | Secretos de ejecución | **Sí** | ⛔ Pendiente de verificar |
 | M-03 | Hostnames de Turnstile | **Sí** | ⛔ Pendiente |
 | M-04 | Dominio propio y `workers_dev: false` | **Sí** | ⛔ Verificar antes de desplegar |

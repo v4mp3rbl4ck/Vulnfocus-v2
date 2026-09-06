@@ -27,6 +27,10 @@ export const EVENTS = Object.freeze([
   'quote_completed',
   'quote_pdf_downloaded',
   'formal_proposal_requested',
+  // Abrir el formulario y enviarlo son dos cosas distintas: el primero mide
+  // interés, el segundo conversión. Con un solo evento no se puede saber
+  // cuántos abandonan el formulario.
+  'formal_proposal_submitted',
   'contact_submitted',
 ]);
 

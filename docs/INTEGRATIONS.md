@@ -50,6 +50,39 @@ Fecha: 2026-09-05T03:12:44.101Z
 No se envían las notas libres del cliente ni el desglose interno: la fuente de
 verdad es D1 y Telegram es solo un aviso.
 
+Aviso de solicitud de propuesta formal (`buildProposalRequestTelegramText`):
+
+```
+Nueva solicitud de propuesta formal
+
+Cotizacion: VF-2026-000042
+Cliente: Ana López
+Empresa: ACME SpA
+Email: ana@acme.cl
+Telefono: +56 9 ...
+
+Servicio(s): Pentesting Web + Pentesting de API
+Alcance resumido: Pentesting Web (3 aplicaciones web, 4 roles de usuario)
+                  + Pentesting de API (120 endpoints, 2 roles)
+Complejidad: Alta
+Horas estimadas: 164-219 h (21-28 dias)
+Precio: 1.200.000 - 1.800.000 CLP
+Fecha objetivo: 2026-11-02
+Incluye comentarios del cliente: ver la ficha
+
+Estimacion: https://vulnfocus.com/estimacion?id=...
+Fecha: 2026-09-06T14:02:11.004Z
+```
+
+Dos decisiones deliberadas:
+
+- **La línea `Precio:` no existe si no hay precio.** Un `Precio: —` invita a
+  pensar que algo falló, cuando lo que ocurre es que no hay tarifa configurada.
+  Aparece solo con `PRICING_ENABLED="true"` y un importe guardado en la fila.
+- **Los comentarios del cliente no viajan por Telegram**, solo su existencia. El
+  texto completo va al correo interno y a D1, por el mismo criterio que ya se
+  aplicaba a las notas del cotizador.
+
 ## Email — adaptador seleccionable
 
 `vars.EMAIL_PROVIDER` decide la implementación:
@@ -132,6 +165,19 @@ cualquier caso: son canales independientes.
 
 No repite el mensaje del usuario: un acuse que devuelve el texto original
 convierte el formulario en un reflector de correo hacia cualquier dirección.
+
+#### `proposalRequestConfirmation()` — acuse de la propuesta formal
+
+Confirma la solicitud con su número de cotización y explica el siguiente paso.
+**No incluye importes aunque existan**: la propuesta formal es el documento que
+fija el precio, y adelantarlo aquí solo sirve para que dos cifras se contradigan.
+
+#### `internalProposalRequestAlert()` — a VulnFocus
+
+El único canal que sí lleva el texto libre del cliente —comentarios y notas de
+alcance—, porque es el que hay que leer antes de redactar la propuesta y va a una
+dirección propia, no a un servicio de mensajería de terceros. Se envía solo si
+`EMAIL_INTERNAL_TO` está configurado.
 
 #### Orden de escritura, y por qué importa
 

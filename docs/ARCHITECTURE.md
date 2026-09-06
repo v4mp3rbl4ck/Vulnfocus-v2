@@ -15,6 +15,8 @@ Cloudflare (DNS · TLS · CDN · WAF · Turnstile)
    │                  ├── POST /api/contact
    │                  ├── POST /api/quotes
    │                  ├── GET  /api/quotes/:public_id
+   │                  ├── GET  /api/quotes/:public_id/request-proposal
+   │                  ├── POST /api/quotes/:public_id/request-proposal
    │                  ├── GET  /api/health
    │                  └── *  → 404 JSON (deny by default)
    │
@@ -60,7 +62,7 @@ worker/
     validate.js                Validación del formulario de contacto
     turnstile.js               Siteverify, fail closed
     telegram.js                Mensajes de contacto y de cotización
-    quotes-handler.js          POST /api/quotes y GET /api/quotes/:public_id
+    quotes-handler.js          Cotizaciones y solicitud de propuesta formal
     access.js                  Verificación del JWT de Cloudflare Access
     admin/
       handler.js               API de administración (mini CRM)
@@ -68,6 +70,7 @@ worker/
     quote/
       rules.js                 Evaluador de tipos de regla
       normalize.js             Validación y normalización de la entrada
+      proposal.js              Campos de la solicitud de propuesta y enmascarado
       scope.js                 SCOPE ENGINE
       complexity.js            COMPLEXITY ENGINE
       effort.js                EFFORT ENGINE

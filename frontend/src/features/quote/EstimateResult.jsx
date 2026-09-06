@@ -1,10 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Check, Download, Printer, Send } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import catalog from '../../config/quote-catalog.json';
 import { track } from '../../lib/analytics';
 import EstimateDocument from './EstimateDocument';
+import ProposalRequestForm from './ProposalRequestForm';
 
 /** Etiqueta de un servicio en el idioma actual. */
 function serviceLabel(id, language) {
@@ -34,6 +34,9 @@ function formatAmount(value, pricing, language) {
 const EstimateResult = ({ quote, showShare = true }) => {
   const { t, language } = useLanguage();
   const q = t.quote.estimate;
+
+  const [proposalOpen, setProposalOpen] = useState(false);
+  const [proposalRequested, setProposalRequested] = useState(false);
 
   const shareUrl =
     typeof window !== 'undefined' && quote.publicId
@@ -133,19 +136,37 @@ const EstimateResult = ({ quote, showShare = true }) => {
       )}
 
       <div className="estimate-actions no-print">
-        {/* La propuesta formal se pide por el formulario de contacto, no con un
-            endpoint que cambie el estado de la cotización: el estado comercial
-            no puede quedar en manos del navegador. */}
-        <Link to="/#contacto" className="btn-primary" onClick={() => track('formal_proposal_requested')}>
-          {q.ctaProposal}
+        {/* La propuesta formal se pide SOBRE esta cotización, no por el
+            formulario de contacto genérico: aquel perdía el `public_id` y
+            obligaba al cliente a volver a describir lo que ya había respondido.
+            El botón abre el formulario específico; quien cambia el estado
+            comercial es el servidor, tras verificar la solicitud. */}
+        <button
+          type="button"
+          className="btn-primary"
+          disabled={!quote.publicId || proposalRequested}
+          onClick={() => {
+            track('formal_proposal_requested');
+            setProposalOpen(true);
+          }}
+        >
+          {proposalRequested ? t.quote.proposal.requestedBadge : q.ctaProposal}
           <Send size={18} aria-hidden="true" />
-        </Link>
+        </button>
         <button type="button" className="btn-secondary" onClick={handlePrint}>
           <Printer size={18} aria-hidden="true" />
           {q.ctaPdf}
         </button>
       </div>
       <p className="estimate-hint no-print">{q.ctaPdfHint}</p>
+
+      {proposalOpen && quote.publicId && (
+        <ProposalRequestForm
+          quote={quote}
+          onClose={() => setProposalOpen(false)}
+          onRequested={() => setProposalRequested(true)}
+        />
+      )}
 
       {showShare && shareUrl && (
         <aside className="estimate-share no-print" aria-labelledby="estimate-share-title">

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   INITIAL_STATUS,
+  PROPOSAL_REQUESTED_STATUS,
+  PUBLIC_PROPOSAL_ORIGINS,
   QUOTE_STATUSES,
   TERMINAL_STATUSES,
   allowedTransitions,
@@ -20,10 +22,11 @@ import {
  */
 
 describe("Conjunto de estados", () => {
-  it("son los seis acordados y no hay duplicados", () => {
+  it("son los siete acordados y no hay duplicados", () => {
     expect(QUOTE_STATUSES).toEqual([
       "NEW",
       "CONTACTED",
+      "PROPOSAL_REQUESTED",
       "PROPOSAL_SENT",
       "ACCEPTED",
       "REJECTED",
@@ -78,14 +81,14 @@ describe("Transiciones", () => {
   });
 
   it("el camino comercial completo es recorrible", () => {
-    const path = ["NEW", "CONTACTED", "PROPOSAL_SENT", "ACCEPTED"];
+    const path = ["NEW", "CONTACTED", "PROPOSAL_REQUESTED", "PROPOSAL_SENT", "ACCEPTED"];
     for (let i = 1; i < path.length; i += 1) {
       expect(canTransition(path[i - 1], path[i]), `${path[i - 1]} → ${path[i]}`).toBe(true);
     }
   });
 
   it("se puede rechazar o caducar en cualquier punto no terminal", () => {
-    for (const from of ["NEW", "CONTACTED", "PROPOSAL_SENT"]) {
+    for (const from of ["NEW", "CONTACTED", "PROPOSAL_REQUESTED", "PROPOSAL_SENT"]) {
       expect(canTransition(from, "REJECTED"), from).toBe(true);
       expect(canTransition(from, "EXPIRED"), from).toBe(true);
     }
@@ -108,6 +111,43 @@ describe("Transiciones", () => {
       }
     }
     expect([...reachable].sort()).toEqual([...QUOTE_STATUSES].sort());
+  });
+});
+
+describe("PROPOSAL_REQUESTED: el único estado que puede fijar el cliente", () => {
+  it("el endpoint público solo lo admite desde NEW y CONTACTED", () => {
+    // La máquina admite más orígenes hacia PROPOSAL_REQUESTED de los que puede
+    // provocar un visitante. Esta lista es la que consulta el endpoint público y
+    // es deliberadamente más estrecha.
+    expect(PUBLIC_PROPOSAL_ORIGINS).toEqual(["NEW", "CONTACTED"]);
+    for (const from of PUBLIC_PROPOSAL_ORIGINS) {
+      expect(canTransition(from, PROPOSAL_REQUESTED_STATUS), from).toBe(true);
+    }
+  });
+
+  it("ningún origen público es terminal ni permite saltarse la propuesta", () => {
+    for (const from of PUBLIC_PROPOSAL_ORIGINS) {
+      expect(TERMINAL_STATUSES, from).not.toContain(from);
+      expect(canTransition(from, "ACCEPTED"), from).toBe(false);
+    }
+  });
+
+  it("desde estados avanzados o terminales NO se puede volver a solicitar", () => {
+    for (const from of ["PROPOSAL_SENT", "ACCEPTED", "REJECTED", "EXPIRED"]) {
+      expect(PUBLIC_PROPOSAL_ORIGINS, from).not.toContain(from);
+      expect(canTransition(from, PROPOSAL_REQUESTED_STATUS), from).toBe(false);
+    }
+  });
+
+  it("una propuesta solicitada avanza, pero nunca directamente a ACCEPTED", () => {
+    expect(allowedTransitions(PROPOSAL_REQUESTED_STATUS)).toEqual([
+      "CONTACTED",
+      "PROPOSAL_SENT",
+      "REJECTED",
+      "EXPIRED",
+    ]);
+    expect(canTransition(PROPOSAL_REQUESTED_STATUS, "ACCEPTED")).toBe(false);
+    expect(canTransition(PROPOSAL_REQUESTED_STATUS, "NEW")).toBe(false);
   });
 });
 

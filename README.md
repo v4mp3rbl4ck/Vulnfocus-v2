@@ -21,6 +21,11 @@ Cloudflare (DNS · TLS · CDN · WAF · Turnstile)
                      │                          ├── D1 (quotes)
                      │                          └── NotificationService
                      ├── GET  /api/quotes/:public_id
+                     ├── POST /api/quotes/:public_id/request-proposal
+                     │                          ├── Turnstile Siteverify
+                     │                          ├── D1 (quote_proposal_requests
+                     │                          │       + estado + auditoría)
+                     │                          └── NotificationService
                      └── GET  /api/health
 ```
 

@@ -88,6 +88,57 @@ export const quoteEn = {
     loading: 'Retrieving the estimate…',
   },
 
+  proposal: {
+    title: 'Request a formal proposal',
+    summaryTitle: 'Your estimate',
+    help: 'We already have your scope and contact details. We only need what is still missing — everything below is optional.',
+    prefilledNote: 'This comes from your quote. There is no need to type it again.',
+    loading: 'Retrieving your quote…',
+    sending: 'Sending…',
+    submit: 'Send request',
+    cancel: 'Cancel',
+    close: 'Close',
+    closeAction: 'Got it',
+    requestedBadge: 'Proposal requested',
+    success: 'We have received your formal proposal request.',
+    alreadyRequested: 'We had already received this request. No second one was created.',
+    nextSteps:
+      'We will review the scope and contact you to confirm it before sending the formal proposal. A receipt is on its way to the email on the quote.',
+    privacy:
+      'This information is attached to your existing quote. Do not include credentials, third-party personal data or classified information.',
+
+    fields: {
+      quoteNumber: 'Quote number',
+      company: 'Company',
+      contactName: 'Contact',
+      email: 'Email',
+      phone: 'Phone',
+      scope: 'Scope',
+      complexity: 'Complexity',
+      effort: 'Estimated effort',
+      price: 'Estimated range',
+    },
+
+    form: {
+      notes: 'Additional comments',
+      notesHelp: 'Anything we should take into account when preparing the proposal.',
+      targetDate: 'Target start date',
+      targetDateHelp: 'If you have a date in mind, we factor it into planning.',
+      scopeNotes: 'Additional scope information',
+      scopeNotesHelp:
+        'Systems, testing windows, restrictions or any detail that did not fit in the form.',
+    },
+
+    errors: {
+      generic: 'The request could not be sent. Please try again.',
+      network: 'No connection to the server. Check your network and try again.',
+      notFound: 'We could not find that quote. The link may be incorrect or expired.',
+      rateLimited: 'Too many attempts. Wait a minute and try again.',
+      verification: 'We could not verify the request. Reload the page and try again.',
+      inProgress: 'This quote is already being handled by our team. Write to us and we will pick it up.',
+    },
+  },
+
   includes: {
     manual_testing: 'Manual testing, not just automated scanning',
     executive_report: 'Executive report',

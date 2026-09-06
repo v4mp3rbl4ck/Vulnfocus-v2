@@ -22,9 +22,62 @@ Regla: **nada se marca DONE sin estar implementado y validado** (tests o verific
 | 9 · QA visual | **DONE** |
 | 10 · Documentación | **DONE** |
 | 11 · Hardening final y preparación para producción | **DONE** |
+| 12 · Solicitud de propuesta formal desde la estimación | **DONE** |
 
-**Tests: 406 verdes (178 originales intactos + 228 nuevos) · Build: verde ·
+**Tests: 490 verdes (los 406 anteriores intactos + 84 nuevos) · Build: verde ·
 Sin regresiones conocidas.**
+
+---
+
+## FASE 12 — Solicitud de propuesta formal · **DONE** · 6 de septiembre de 2026
+
+### El problema
+
+En `/estimacion?id=<public_id>`, el botón **Solicitar propuesta formal** era un
+enlace a `/#contacto`. Funcionaba, pero perdía la cotización: el visitante
+llegaba a un formulario en blanco y tenía que volver a describir lo que acababa
+de responder, y por el otro extremo llegaba un mensaje suelto que nadie podía
+asociar a la estimación. No era un fallo de programación —por eso ningún test lo
+veía—, era un flujo roto.
+
+### Lo implementado
+
+| # | Cambio | Evidencia |
+|---|---|---|
+| 12-1 | `POST /api/quotes/:public_id/request-proposal`: la solicitud se hace **sobre** la cotización existente. No crea ninguna nueva | `worker/lib/quotes-handler.js`, 52 tests |
+| 12-2 | `GET /api/quotes/:public_id/request-proposal`: prellenado desde D1, con el correo y el teléfono **enmascarados** | `worker/lib/quote/proposal.js` |
+| 12-3 | Estado `PROPOSAL_REQUESTED`, entre `CONTACTED` y `PROPOSAL_SENT`. Único destino que puede provocar un visitante, y solo desde `NEW` o `CONTACTED` | `worker/lib/quote/lifecycle.js`, 4 tests nuevos |
+| 12-4 | Auditoría en `quote_status_events` con `actor_source='client'`, distinguible de los cambios administrativos | `migrations/0004_proposal_requests.sql` |
+| 12-5 | Idempotencia garantizada por la base: `UNIQUE(quote_id)` en `quote_proposal_requests` | Test de cinco intentos seguidos → una sola fila |
+| 12-6 | Aviso de Telegram con el formato acordado y correos —acuse al cliente y alerta interna con su texto libre— | `worker/lib/telegram.js`, `integrations/email/templates.js` |
+| 12-7 | Formulario específico en la propia estimación, con el resumen a la vista. Ya no se navega al contacto genérico | `frontend/src/features/quote/ProposalRequestForm.jsx`, 26 tests |
+
+### Lo que el cliente NO puede hacer
+
+Horas, precio, complejidad, alcance, estado, número de cotización y datos de
+contacto se leen de D1. El cuerpo de la petición solo se mira para tres campos
+—`notes`, `targetDate`, `scopeNotes`— y para la verificación. Hay un test por
+cada intento de manipulación.
+
+### Migración
+
+`0004_proposal_requests.sql`. **Es la primera migración del proyecto que no es
+aditiva**: reconstruye `quotes` porque SQLite no permite ampliar un `CHECK` con
+`ALTER TABLE`. Conserva todas las filas, incluidas las del histórico, y el orden
+de las operaciones —que evita disparar la cascada de `quote_status_events`— está
+fijado por un test. Copia de seguridad obligatoria antes de aplicarla:
+`docs/CLOUDFLARE_MANUAL_ACTIONS.md` → M-01.
+
+### Verificación ejecutada
+
+```
+npm test                      490 passed (16 files)   exit 0
+npm run build:frontend        Compiled successfully   exit 0
+npm run build:site:check      16 rutas + 404.html     exit 0
+npm run deploy:dry-run        151,32 KiB · 38 assets · 4 limitadores · D1
+migración 0004 sobre SQLite   2 cotizaciones y 3 eventos previos conservados,
+con datos y claves foráneas   CHECK ampliado, UNIQUE y cascade verificados
+```
 
 ---
 
@@ -179,7 +232,9 @@ verificaciones ejecutadas contra un despliegue real.
 | `test/routing.test.js` | 25 — rutas legítimas y 29 de fuzzing |
 | `test/lifecycle.test.js` | 20 — máquina de estados comercial |
 | `test/seo-assets.test.js` | 18 — existencia de assets y metadatos |
-| **Total** | **406** (73 originales + 105 de la fase 2 + 228 de la fase 11) |
+| `test/proposal-request.test.js` | 52 — propuesta formal: superficie, identificador, camino feliz, duplicados, estado de origen, manipulación, validación, Turnstile, rate limit y precio |
+| `test/proposal-ui.test.js` | 26 — contrato del navegador: el botón no vuelve al contacto genérico, a dónde va la petición y qué lleva |
+| **Total** | **490** (73 originales + 105 de la fase 2 + 228 de la fase 11 + 84 de la fase 12) |
 
 ## FASE 9 — QA visual · **DONE**
 

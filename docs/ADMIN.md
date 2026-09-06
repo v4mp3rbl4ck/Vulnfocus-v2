@@ -128,19 +128,21 @@ Content-Type: application/json
 ## 4. Ciclo de vida
 
 ```
-NEW ──► CONTACTED ──► PROPOSAL_SENT ──► ACCEPTED   (terminal)
- │          │               │
- └──────────┴───────────────┴─────────► REJECTED   (terminal)
- │          │               │
- └──────────┴───────────────┴─────────► EXPIRED
-                                            │
-                                            └────► CONTACTED  (se retoma)
+NEW ──► CONTACTED ──► PROPOSAL_REQUESTED ──► PROPOSAL_SENT ──► ACCEPTED
+ │          │  ▲                 │                  │          (terminal)
+ │          └──┘ (se retoma)     │                  │
+ ├──────────┴──────────────┬─────┴──────────────────┴──► REJECTED (terminal)
+ │                         │
+ └─────────────────────────┴──────────────────────────► EXPIRED
+                                                            │
+                                                            └──► CONTACTED
 ```
 
 | Estado | Significado |
 |---|---|
 | `NEW` | Recién creada por el cotizador. Único estado inicial posible. |
 | `CONTACTED` | Se ha hablado con el cliente. |
+| `PROPOSAL_REQUESTED` | **El cliente ha pedido la propuesta formal** desde su estimación. Único estado que puede fijar alguien de fuera. |
 | `PROPOSAL_SENT` | Propuesta formal enviada. |
 | `ACCEPTED` | Ganada. **Terminal.** Es el disparador previsto de SysReptor. |
 | `REJECTED` | Perdida. **Terminal.** |
@@ -154,9 +156,15 @@ Reglas y su porqué:
   dejando constancia, no volviendo atrás en silencio.
 - **Quedarse en el mismo estado no es una transición**: devuelve 409 en lugar de
   escribir una fila de auditoría vacía de contenido.
-- Los seis estados coinciden con el `CHECK` de la columna en
-  `migrations/0002_quotes.sql`. Hay un test que compara ambas listas: si divergen,
-  una transición válida en la aplicación fallaría en la base.
+- **`PROPOSAL_REQUESTED` es el único destino que puede provocar un visitante**, y
+  solo desde `NEW` o `CONTACTED` (`PUBLIC_PROPOSAL_ORIGINS`). Una cotización que
+  ya está en `PROPOSAL_SENT` o más allá la lleva una persona: un clic en un
+  enlace antiguo devuelve 409 y no la mueve. Los eventos de ese origen se
+  distinguen en el histórico por `actor_source='client'`.
+- Los siete estados coinciden con el `CHECK` de la columna, que desde
+  `migrations/0004_proposal_requests.sql` es el vigente. Hay un test que compara
+  ambas listas: si divergen, una transición válida en la aplicación fallaría en
+  la base.
 
 ---
 

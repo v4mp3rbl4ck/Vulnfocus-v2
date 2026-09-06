@@ -15,6 +15,7 @@
 import catalog from '../../../frontend/src/config/quote-catalog.json';
 
 const LABELS = new Map(catalog.services.map((service) => [service.id, service.labels]));
+const CATALOG_SERVICES = new Map(catalog.services.map((service) => [service.id, service]));
 
 const COMPLEXITY = {
   es: { LOW: 'Baja', MEDIUM: 'Media', HIGH: 'Alta' },
@@ -37,4 +38,70 @@ export function serviceList(ids, lang = 'es') {
 /** Etiqueta de complejidad. Devuelve el código si no se reconoce. */
 export function complexityLabel(value, lang = 'es') {
   return COMPLEXITY[lang]?.[value] || COMPLEXITY.es[value] || String(value ?? '—');
+}
+
+/**
+ * Nombre corto de una pregunta numérica, para resúmenes de una línea.
+ *
+ * Las etiquetas del catálogo son preguntas completas ("¿Cuántas aplicaciones web
+ * entran en el alcance?") porque es lo que se le muestra a quien rellena el
+ * formulario. En un aviso que se lee en un móvil no caben, y recortarlas a
+ * ciegas parte palabras. Se extrae el sujeto —"aplicaciones web"— con una regla
+ * explícita, y si la etiqueta no encaja se devuelve entera: preferible larga que
+ * incorrecta.
+ *
+ * NO se añade una segunda lista de nombres cortos al catálogo: dos listas para
+ * lo mismo terminan divergiendo, que es justo lo que evita este módulo.
+ */
+const SUBJECT_RE = {
+  es: /^¿cu[áa]nt[oa]s?\s+(.+?)(?:\s+(?:entran|hay|tiene|tienen|distint\w+|deber[íi]a|se\s|unidos|consumen|u\s|y\s|o\s)|[,?])/i,
+  en: /^how many\s+(.+?)(?:\s+(?:are|is|do|does|must|should|have|has|will)\b|[,?])/i,
+};
+
+function shortQuestionLabel(question, lang = 'es') {
+  const label = question.labels?.[lang] || question.labels?.es || String(question.id);
+  const match = (SUBJECT_RE[lang] || SUBJECT_RE.es).exec(label);
+  return match ? match[1] : label.replace(/^¿/, '').replace(/\?$/, '');
+}
+
+/**
+ * Alcance declarado en una línea: "Pentesting Web (3 aplicaciones web, 2 roles)".
+ *
+ * Solo entran las magnitudes numéricas, que son las que dimensionan el trabajo.
+ * Las opciones de contexto (autenticación, WAF, entorno…) ya están reflejadas en
+ * la complejidad y en las horas, y listarlas aquí convertiría el resumen en el
+ * formulario entero.
+ *
+ * @param {string[]} services  Identificadores de servicio, en su orden.
+ * @param {object} scope       scope_json ya parseado: { <servicio>: { <pregunta>: valor } }
+ */
+export function scopeSummary(services, scope, lang = 'es') {
+  if (!Array.isArray(services) || services.length === 0) return '—';
+  const parts = [];
+
+  for (const id of services) {
+    const service = CATALOG_SERVICES.get(id);
+    const answers = scope && typeof scope === 'object' ? scope[id] : null;
+    if (!service) {
+      parts.push(serviceLabel(id, lang));
+      continue;
+    }
+
+    const magnitudes = service.questions
+      .filter((question) => question.type === 'number')
+      .map((question) => {
+        const value = answers?.[question.id];
+        if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+        return `${value} ${shortQuestionLabel(question, lang)}`;
+      })
+      .filter(Boolean);
+
+    parts.push(
+      magnitudes.length > 0
+        ? `${serviceLabel(id, lang)} (${magnitudes.join(', ')})`
+        : serviceLabel(id, lang),
+    );
+  }
+
+  return parts.join(' + ');
 }

@@ -272,3 +272,50 @@ export function adminRequest(path, { token, method = "GET", body, headers = {} }
 export async function resetStatusEvents() {
   await env.DB.prepare("DELETE FROM quote_status_events").run();
 }
+
+// ---------------------------------------------------------------------------
+// Solicitud de propuesta formal
+
+export function proposalRequest(publicId, body, { method = "POST", headers = {} } = {}) {
+  return new Request(`https://vulnfocus.com/api/quotes/${publicId}/request-proposal`, {
+    method,
+    headers: {
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      "CF-Connecting-IP": nextTestIp(),
+      ...headers,
+    },
+    ...(body !== undefined
+      ? { body: typeof body === "string" ? body : JSON.stringify(body) }
+      : {}),
+  });
+}
+
+export const validProposalPayload = (over = {}) => ({
+  notes: "Preferimos empezar después del cierre contable.",
+  scopeNotes: "El entorno de staging replica producción salvo la pasarela de pagos.",
+  turnstileToken: "0.token-de-prueba",
+  ...over,
+});
+
+export async function countProposalRequests() {
+  const r = await env.DB.prepare("SELECT COUNT(*) AS n FROM quote_proposal_requests").first();
+  return r.n;
+}
+
+/** Fila de `quotes` completa, para comprobar que el cliente no cambió nada. */
+export async function quoteRow(publicId) {
+  return env.DB.prepare("SELECT * FROM quotes WHERE public_id = ?").bind(publicId).first();
+}
+
+export async function statusEvents(quoteId) {
+  const { results } = await env.DB.prepare(
+    "SELECT * FROM quote_status_events WHERE quote_id = ? ORDER BY created_at ASC",
+  )
+    .bind(quoteId)
+    .all();
+  return results || [];
+}
+
+export async function resetProposalRequests() {
+  await env.DB.prepare("DELETE FROM quote_proposal_requests").run();
+}
