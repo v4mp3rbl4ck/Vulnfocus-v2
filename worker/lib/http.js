@@ -17,8 +17,39 @@ export function securityHeaders(extra = {}) {
   };
 }
 
+/**
+ * Serializa a JSON escapando los caracteres que solo son peligrosos FUERA de un
+ * parser de JSON.
+ *
+ * `JSON.stringify` no escapa `<`, `>` ni `&`, así que el nombre de empresa
+ * `<script>alert(1)</script>` aparece literal en el cuerpo de la respuesta. Con
+ * `Content-Type: application/json`, `nosniff` y la CSP de `securityHeaders()` un
+ * navegador no lo interpreta como HTML, y por eso no era explotable. Pero el
+ * cuerpo de una API acaba en sitios que no controlamos: incrustado en una página
+ * por un consumidor, en un panel de logs, en una herramienta de terceros. Ahí el
+ * escapado sí decide.
+ *
+ * `\u003c` es JSON perfectamente válido: `JSON.parse` devuelve exactamente el
+ * mismo texto, así que ni el frontend ni ningún cliente nota la diferencia.
+ *
+ * U+2028 y U+2029 se escapan porque son salto de línea para un parser de
+ * JavaScript aunque sean válidos dentro de una cadena JSON: sin escaparlos, un
+ * cuerpo interpolado en un `<script>` se rompe (y ahí empieza la inyección).
+ */
+function safeJsonStringify(body) {
+  return JSON.stringify(body).replace(/[<>&\u2028\u2029]/g, (ch) => {
+    switch (ch) {
+      case "<": return "\\u003c";
+      case ">": return "\\u003e";
+      case "&": return "\\u0026";
+      case "\u2028": return "\\u2028";
+      default: return "\\u2029";
+    }
+  });
+}
+
 export function json(body, status = 200, extraHeaders = {}) {
-  return new Response(JSON.stringify(body), {
+  return new Response(safeJsonStringify(body), {
     status,
     headers: securityHeaders(extraHeaders),
   });

@@ -1,0 +1,741 @@
+/**
+ * Catálogo de servicios — contenido de las páginas /servicios y /servicios/:slug.
+ *
+ * `id` coincide con el identificador del servicio en el catálogo del cotizador
+ * (frontend/src/config/quote-catalog.json) para poder enlazar una página de
+ * servicio con su cotización preseleccionada. `path` debe existir en
+ * frontend/src/config/site.json o la página no se generará como asset y
+ * terminará en 404.
+ */
+
+export const SERVICES = [
+  {
+    id: 'web',
+    slug: 'pentesting-web',
+    path: '/servicios/pentesting-web',
+    icon: 'Globe',
+    frameworks: ['OWASP WSTG', 'OWASP ASVS', 'PTES', 'CVSS'],
+    es: {
+      name: 'Pentesting Web',
+      short: 'Evaluación manual de aplicaciones web, con foco en control de acceso y lógica de negocio.',
+      objective:
+        'Determinar qué puede conseguir un atacante contra tu aplicación web: desde un usuario anónimo, desde un usuario legítimo con el rol más bajo y desde una cuenta comprometida.',
+      evaluates: [
+        'Autenticación, gestión de sesión y recuperación de cuenta',
+        'Control de acceso horizontal y vertical entre roles reales',
+        'Lógica de negocio: flujos que se pueden completar fuera de orden o con valores no previstos',
+        'Validación de entrada y salida: inyecciones, deserialización, plantillas del lado servidor',
+        'Exposición de datos en respuestas, cabeceras y ficheros accesibles',
+        'Configuración de la plataforma, cabeceras de seguridad y gestión de errores',
+        'Carga y tratamiento de ficheros',
+      ],
+      methodology: [
+        { title: 'Reconocimiento', description: 'Mapa de la aplicación, tecnologías, endpoints y superficie realmente alcanzable con cada rol.' },
+        { title: 'Análisis automatizado', description: 'Escaneo como punto de partida para acotar candidatos, nunca como resultado.' },
+        { title: 'Validación manual', description: 'Prueba a mano de cada candidato y descarte de falsos positivos.' },
+        { title: 'Explotación controlada', description: 'Demostración del hallazgo dentro de las reglas acordadas, sin degradar el servicio.' },
+        { title: 'Encadenamiento', description: 'Combinación de debilidades hasta la ruta de ataque con mayor impacto.' },
+      ],
+      tests: [
+        'Acceso a recursos de otro usuario cambiando identificadores (IDOR / BOLA)',
+        'Escalada a funciones administrativas desde un rol sin privilegios',
+        'Inyección SQL, NoSQL, de comandos y de plantillas del lado servidor',
+        'XSS reflejado, almacenado y basado en DOM, con impacto demostrado',
+        'Abuso de flujos de negocio: precios, cupones, límites y estados no válidos',
+        'Fallos de sesión: fijación, expiración, revocación e invalidación tras cambio de contraseña',
+      ],
+      deliverables: [
+        'Informe ejecutivo y técnico',
+        'Evidencias y pasos de reproducción por hallazgo',
+        'Vector CVSS y priorización por riesgo real',
+        'Rutas de ataque encadenadas',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 3 semanas, según número de aplicaciones, roles y volumen de funcionalidad.',
+    },
+    en: {
+      name: 'Web Pentesting',
+      short: 'Manual web application assessment focused on access control and business logic.',
+      objective:
+        'Determine what an attacker can achieve against your web application: as an anonymous user, as a legitimate lowest-privilege user and from a compromised account.',
+      evaluates: [
+        'Authentication, session management and account recovery',
+        'Horizontal and vertical access control across real roles',
+        'Business logic: flows completable out of order or with unexpected values',
+        'Input and output handling: injection, deserialization, server-side templates',
+        'Data exposure in responses, headers and reachable files',
+        'Platform configuration, security headers and error handling',
+        'File upload and processing',
+      ],
+      methodology: [
+        { title: 'Reconnaissance', description: 'Application map, technologies, endpoints and the surface actually reachable per role.' },
+        { title: 'Automated analysis', description: 'Scanning as a starting point to narrow candidates, never as the result.' },
+        { title: 'Manual validation', description: 'Hands-on testing of every candidate and false positive triage.' },
+        { title: 'Controlled exploitation', description: 'Demonstration within the agreed rules, without degrading the service.' },
+        { title: 'Chaining', description: 'Weaknesses combined into the highest-impact attack path.' },
+      ],
+      tests: [
+        'Accessing another user resources by changing identifiers (IDOR / BOLA)',
+        'Escalation to administrative functions from an unprivileged role',
+        'SQL, NoSQL, command and server-side template injection',
+        'Reflected, stored and DOM-based XSS with demonstrated impact',
+        'Business flow abuse: pricing, coupons, limits and invalid states',
+        'Session flaws: fixation, expiry, revocation and invalidation after password change',
+      ],
+      deliverables: [
+        'Executive and technical report',
+        'Evidence and reproduction steps per finding',
+        'CVSS vector and prioritization by real risk',
+        'Chained attack paths',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 3 weeks depending on number of applications, roles and functionality volume.',
+    },
+  },
+
+  {
+    id: 'api',
+    slug: 'pentesting-api',
+    path: '/servicios/pentesting-api',
+    icon: 'Braces',
+    frameworks: ['OWASP API Security Top 10', 'OWASP WSTG', 'PTES', 'CVSS'],
+    es: {
+      name: 'Pentesting de API',
+      short: 'REST, GraphQL y gRPC evaluados por rol, con foco en autorización a nivel de objeto y función.',
+      objective:
+        'Verificar que la API aplica sus propias reglas de autorización en cada endpoint y no solo en la interfaz que la consume.',
+      evaluates: [
+        'Autorización a nivel de objeto (BOLA) y de función (BFLA)',
+        'Autenticación, emisión y validación de tokens, y caducidad efectiva',
+        'Exposición excesiva de datos en las respuestas',
+        'Consumo sin límites: paginación, cuotas y operaciones costosas',
+        'Consistencia entre la documentación OpenAPI/GraphQL y el comportamiento real',
+        'Endpoints no documentados, versiones antiguas y entornos residuales',
+        'Integraciones y flujos servidor a servidor',
+      ],
+      methodology: [
+        { title: 'Inventario', description: 'Enumeración de endpoints declarados y descubiertos, y de operaciones por rol.' },
+        { title: 'Matriz de autorización', description: 'Prueba sistemática de cada operación con cada rol, incluido el anónimo.' },
+        { title: 'Validación manual', description: 'Manipulación de identificadores, tipos, filtros y parámetros de control.' },
+        { title: 'Explotación', description: 'Demostración del acceso indebido y de su alcance sobre datos del entorno de prueba.' },
+      ],
+      tests: [
+        'Lectura y modificación de objetos de otro tenant o usuario',
+        'Invocación de operaciones administrativas con un token de rol básico',
+        'Introspección y consultas anidadas abusivas en GraphQL',
+        'Manipulación de filtros y campos para extraer datos no previstos',
+        'Reutilización de tokens caducados, revocados o de otro entorno',
+        'Falta de límites en operaciones costosas o de envío masivo',
+      ],
+      deliverables: [
+        'Informe ejecutivo y técnico',
+        'Matriz de autorización rol × operación',
+        'Peticiones y respuestas de cada hallazgo',
+        'Vector CVSS y priorización',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 2 semanas, según número de endpoints, roles y complejidad de la autorización.',
+    },
+    en: {
+      name: 'API Pentesting',
+      short: 'REST, GraphQL and gRPC assessed per role, focused on object and function level authorization.',
+      objective:
+        'Verify that the API enforces its own authorization rules on every endpoint, not only in the interface that consumes it.',
+      evaluates: [
+        'Object level (BOLA) and function level (BFLA) authorization',
+        'Authentication, token issuance and validation, and effective expiry',
+        'Excessive data exposure in responses',
+        'Unrestricted consumption: pagination, quotas and expensive operations',
+        'Consistency between OpenAPI/GraphQL documentation and real behaviour',
+        'Undocumented endpoints, legacy versions and leftover environments',
+        'Integrations and server-to-server flows',
+      ],
+      methodology: [
+        { title: 'Inventory', description: 'Enumeration of declared and discovered endpoints, and of operations per role.' },
+        { title: 'Authorization matrix', description: 'Systematic testing of every operation with every role, anonymous included.' },
+        { title: 'Manual validation', description: 'Manipulation of identifiers, types, filters and control parameters.' },
+        { title: 'Exploitation', description: 'Demonstration of improper access and its reach over test environment data.' },
+      ],
+      tests: [
+        'Reading and modifying objects of another tenant or user',
+        'Invoking administrative operations with a basic-role token',
+        'Abusive introspection and nested queries in GraphQL',
+        'Filter and field manipulation to extract unintended data',
+        'Reuse of expired, revoked or cross-environment tokens',
+        'Missing limits on expensive or bulk operations',
+      ],
+      deliverables: [
+        'Executive and technical report',
+        'Role × operation authorization matrix',
+        'Requests and responses per finding',
+        'CVSS vector and prioritization',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 2 weeks depending on endpoint count, roles and authorization complexity.',
+    },
+  },
+
+  {
+    id: 'infra_externa',
+    slug: 'infraestructura-externa',
+    path: '/servicios/infraestructura-externa',
+    icon: 'Globe2',
+    frameworks: ['PTES', 'NIST SP 800-115', 'CIS Benchmarks', 'CVSS'],
+    es: {
+      name: 'Infraestructura Externa',
+      short: 'Evaluación del perímetro expuesto a Internet y de lo que permite atravesarlo.',
+      objective:
+        'Establecer qué es alcanzable desde Internet, qué de ello es explotable y hasta dónde llega un atacante que solo dispone de tu superficie pública.',
+      evaluates: [
+        'Superficie real: dominios, subdominios, rangos y servicios que responden',
+        'Servicios expuestos, versiones y configuración',
+        'Credenciales débiles, por defecto o reutilizadas en accesos remotos',
+        'Portales de acceso, VPN y publicaciones que no deberían ser públicas',
+        'Fugas de información en certificados, cabeceras, metadatos y repositorios',
+        'Segmentación entre lo publicado y lo interno',
+      ],
+      methodology: [
+        { title: 'Descubrimiento', description: 'OSINT y enumeración activa para encontrar también lo que no estaba declarado.' },
+        { title: 'Perfilado', description: 'Identificación de servicios, versiones y tecnologías con verificación manual.' },
+        { title: 'Validación', description: 'Comprobación manual de cada candidato a vulnerabilidad, descartando ruido.' },
+        { title: 'Explotación controlada', description: 'Demostración del acceso obtenido y de su alcance, sin afectar a la disponibilidad.' },
+      ],
+      tests: [
+        'Servicios de administración accesibles desde Internet',
+        'Ataques de credenciales controlados contra accesos remotos publicados',
+        'Vulnerabilidades conocidas con explotación verificada, no solo detección por versión',
+        'Activos olvidados: entornos de prueba, paneles y copias accesibles',
+        'Cabeceras, certificados y configuraciones TLS deficientes',
+      ],
+      deliverables: [
+        'Inventario de superficie expuesta',
+        'Informe ejecutivo y técnico',
+        'Evidencias por hallazgo',
+        'Vector CVSS y priorización',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 2 semanas, según número de direcciones IP, dominios y servicios expuestos.',
+    },
+    en: {
+      name: 'External Infrastructure',
+      short: 'Assessment of the Internet-facing perimeter and of what allows crossing it.',
+      objective:
+        'Establish what is reachable from the Internet, which of it is exploitable and how far an attacker gets with your public surface alone.',
+      evaluates: [
+        'Real surface: domains, subdomains, ranges and responding services',
+        'Exposed services, versions and configuration',
+        'Weak, default or reused credentials on remote access',
+        'Access portals, VPNs and publications that should not be public',
+        'Information leakage in certificates, headers, metadata and repositories',
+        'Segmentation between published and internal assets',
+      ],
+      methodology: [
+        { title: 'Discovery', description: 'OSINT and active enumeration to also find what was not declared.' },
+        { title: 'Profiling', description: 'Service, version and technology identification with manual verification.' },
+        { title: 'Validation', description: 'Manual checking of every vulnerability candidate, discarding noise.' },
+        { title: 'Controlled exploitation', description: 'Demonstration of the access obtained and its reach, without affecting availability.' },
+      ],
+      tests: [
+        'Administration services reachable from the Internet',
+        'Controlled credential attacks against published remote access',
+        'Known vulnerabilities with verified exploitation, not version-based detection only',
+        'Forgotten assets: test environments, panels and reachable backups',
+        'Weak headers, certificates and TLS configuration',
+      ],
+      deliverables: [
+        'Exposed surface inventory',
+        'Executive and technical report',
+        'Evidence per finding',
+        'CVSS vector and prioritization',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 2 weeks depending on IP addresses, domains and exposed services.',
+    },
+  },
+
+  {
+    id: 'infra_interna',
+    slug: 'infraestructura-interna',
+    path: '/servicios/infraestructura-interna',
+    icon: 'Network',
+    frameworks: ['PTES', 'NIST SP 800-115', 'MITRE ATT&CK', 'CVSS'],
+    es: {
+      name: 'Infraestructura Interna',
+      short: 'Simulación de un atacante que ya está dentro: segmentación, escalada y movimiento lateral.',
+      objective:
+        'Medir hasta dónde llega alguien que consigue un punto de apoyo en la red interna, ya sea por phishing, un equipo comprometido o un acceso físico.',
+      evaluates: [
+        'Segmentación real entre redes, VLAN y entornos',
+        'Servicios internos expuestos y su autenticación',
+        'Escalada de privilegios local en servidores y estaciones',
+        'Reutilización de credenciales y secretos almacenados en claro',
+        'Protocolos de red heredados y suplantación en red local',
+        'Rutas de movimiento lateral hacia sistemas críticos',
+      ],
+      methodology: [
+        { title: 'Punto de partida', description: 'Acceso acordado con el cliente: equipo, VPN o puerto de red.' },
+        { title: 'Descubrimiento interno', description: 'Mapa de la red alcanzable desde ese punto y de sus servicios.' },
+        { title: 'Escalada', description: 'Obtención de privilegios locales y de dominio con técnicas verificadas.' },
+        { title: 'Movimiento lateral', description: 'Avance controlado hasta los objetivos acordados como críticos.' },
+        { title: 'Impacto', description: 'Demostración de qué queda accesible y con qué consecuencias.' },
+      ],
+      tests: [
+        'Suplantación de servicios de resolución de nombres en red local',
+        'Reutilización de hashes y credenciales entre sistemas',
+        'Servicios internos sin autenticación o con credenciales por defecto',
+        'Recursos compartidos con datos sensibles o secretos',
+        'Escalada de privilegios por permisos de servicios y tareas programadas',
+        'Comprobación de que la segmentación declarada se cumple',
+      ],
+      deliverables: [
+        'Mapa de rutas de ataque interno',
+        'Informe ejecutivo y técnico',
+        'Evidencias por hallazgo',
+        'Vector CVSS y priorización',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 3 semanas, según número de hosts, segmentos y sedes.',
+    },
+    en: {
+      name: 'Internal Infrastructure',
+      short: 'Simulation of an attacker already inside: segmentation, escalation and lateral movement.',
+      objective:
+        'Measure how far someone gets after gaining a foothold in the internal network, whether by phishing, a compromised endpoint or physical access.',
+      evaluates: [
+        'Real segmentation between networks, VLANs and environments',
+        'Exposed internal services and their authentication',
+        'Local privilege escalation on servers and workstations',
+        'Credential reuse and secrets stored in clear text',
+        'Legacy network protocols and local network spoofing',
+        'Lateral movement paths towards critical systems',
+      ],
+      methodology: [
+        { title: 'Starting point', description: 'Access agreed with the client: a host, a VPN or a network port.' },
+        { title: 'Internal discovery', description: 'Map of the network reachable from that point and of its services.' },
+        { title: 'Escalation', description: 'Obtaining local and domain privileges with verified techniques.' },
+        { title: 'Lateral movement', description: 'Controlled progress towards the agreed critical objectives.' },
+        { title: 'Impact', description: 'Demonstration of what becomes accessible and with what consequences.' },
+      ],
+      tests: [
+        'Name resolution service spoofing on the local network',
+        'Hash and credential reuse across systems',
+        'Internal services without authentication or with default credentials',
+        'Shared folders holding sensitive data or secrets',
+        'Privilege escalation via service permissions and scheduled tasks',
+        'Verification that the declared segmentation actually holds',
+      ],
+      deliverables: [
+        'Internal attack path map',
+        'Executive and technical report',
+        'Evidence per finding',
+        'CVSS vector and prioritization',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 3 weeks depending on hosts, segments and sites.',
+    },
+  },
+
+  {
+    id: 'active_directory',
+    slug: 'active-directory',
+    path: '/servicios/active-directory',
+    icon: 'Users',
+    frameworks: ['MITRE ATT&CK', 'PTES', 'CIS Benchmarks', 'CVSS'],
+    es: {
+      name: 'Active Directory',
+      short: 'Rutas de ataque desde un usuario sin privilegios hasta el control del dominio.',
+      objective:
+        'Identificar las rutas concretas que llevan de una cuenta cualquiera del dominio a privilegios de administración, y qué cambio corta cada una.',
+      evaluates: [
+        'Delegaciones, ACL y permisos heredados sobre objetos del directorio',
+        'Kerberos: cuentas de servicio, delegación y solicitudes de tickets',
+        'Servicios de certificados (AD CS) y plantillas mal configuradas',
+        'Política de contraseñas efectiva y cuentas con privilegios excesivos',
+        'Relaciones de confianza entre dominios y bosques',
+        'Higiene de la administración: cuentas compartidas y sesiones privilegiadas en estaciones',
+      ],
+      methodology: [
+        { title: 'Recolección', description: 'Enumeración del directorio desde una cuenta sin privilegios acordada.' },
+        { title: 'Análisis de rutas', description: 'Construcción del grafo de relaciones y de las rutas hacia privilegios altos.' },
+        { title: 'Validación', description: 'Comprobación manual de que cada ruta es realmente aprovechable.' },
+        { title: 'Explotación controlada', description: 'Demostración de la ruta más corta al objetivo, acordada previamente.' },
+        { title: 'Remediación priorizada', description: 'Qué cambio concreto invalida más rutas con menos impacto operativo.' },
+      ],
+      tests: [
+        'Solicitud y descifrado de tickets de cuentas de servicio (Kerberoasting)',
+        'Cuentas con preautenticación deshabilitada (AS-REP Roasting)',
+        'Abuso de plantillas de certificados que permiten suplantar a otro usuario',
+        'Delegación no restringida y delegación restringida basada en recursos',
+        'Permisos sobre objetos que permiten cambiar contraseñas o añadirse a grupos',
+        'Abuso de relaciones de confianza entre dominios',
+      ],
+      deliverables: [
+        'Grafo de rutas de ataque al dominio',
+        'Informe ejecutivo y técnico',
+        'Evidencias por hallazgo',
+        'Plan de remediación ordenado por número de rutas que cierra',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 3 semanas, según número de usuarios, servidores, dominios y relaciones de confianza.',
+    },
+    en: {
+      name: 'Active Directory',
+      short: 'Attack paths from an unprivileged user to full domain control.',
+      objective:
+        'Identify the concrete paths leading from any domain account to administrative privileges, and which change cuts each one.',
+      evaluates: [
+        'Delegations, ACLs and inherited permissions over directory objects',
+        'Kerberos: service accounts, delegation and ticket requests',
+        'Certificate services (AD CS) and misconfigured templates',
+        'Effective password policy and over-privileged accounts',
+        'Trust relationships between domains and forests',
+        'Administration hygiene: shared accounts, privileged sessions on workstations',
+      ],
+      methodology: [
+        { title: 'Collection', description: 'Directory enumeration from an agreed unprivileged account.' },
+        { title: 'Path analysis', description: 'Building the relationship graph and the paths to high privileges.' },
+        { title: 'Validation', description: 'Manual verification that each path is genuinely usable.' },
+        { title: 'Controlled exploitation', description: 'Demonstration of the shortest path to the pre-agreed objective.' },
+        { title: 'Prioritized remediation', description: 'Which specific change invalidates the most paths with the least operational impact.' },
+      ],
+      tests: [
+        'Requesting and cracking service account tickets (Kerberoasting)',
+        'Accounts with pre-authentication disabled (AS-REP Roasting)',
+        'Abuse of certificate templates allowing impersonation',
+        'Unconstrained and resource-based constrained delegation',
+        'Object permissions allowing password resets or group self-addition',
+        'Abuse of inter-domain trust relationships',
+      ],
+      deliverables: [
+        'Domain attack path graph',
+        'Executive and technical report',
+        'Evidence per finding',
+        'Remediation plan ordered by number of paths closed',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 3 weeks depending on users, servers, domains and trusts.',
+    },
+  },
+
+  {
+    id: 'mobile',
+    slug: 'mobile',
+    path: '/servicios/mobile',
+    icon: 'Smartphone',
+    frameworks: ['OWASP MASVS', 'OWASP MASTG', 'OWASP API Security Top 10', 'CVSS'],
+    es: {
+      name: 'Mobile',
+      short: 'Aplicaciones Android e iOS evaluadas en el dispositivo y contra su backend.',
+      objective:
+        'Comprobar qué expone la aplicación en el dispositivo, qué controles se pueden eludir modificándola y qué consigue quien ataca directamente su backend.',
+      evaluates: [
+        'Almacenamiento local: credenciales, tokens, cachés y bases de datos',
+        'Comunicación con el backend, validación de certificados y fijación',
+        'Controles antimanipulación, detección de root/jailbreak y ofuscación',
+        'Lógica de autenticación y autorización, incluida la que se resuelve en cliente',
+        'Componentes expuestos de la plataforma y enlaces profundos',
+        'La API que consume la aplicación, como parte del alcance',
+      ],
+      methodology: [
+        { title: 'Análisis estático', description: 'Revisión del paquete, recursos, secretos incrustados y configuración.' },
+        { title: 'Análisis dinámico', description: 'Ejecución instrumentada en dispositivo para observar y modificar el comportamiento.' },
+        { title: 'Tráfico', description: 'Interceptación y manipulación de la comunicación con el backend.' },
+        { title: 'Backend', description: 'Pruebas de autorización sobre la API, con los roles reales de la aplicación.' },
+      ],
+      tests: [
+        'Extracción de claves, tokens o endpoints incrustados en el paquete',
+        'Datos sensibles en almacenamiento sin proteger o en copias de seguridad',
+        'Elusión de la fijación de certificados para observar el tráfico real',
+        'Elusión de controles de autenticación resueltos en el lado cliente',
+        'Acceso a componentes o enlaces profundos desde otra aplicación',
+        'Autorización insuficiente en la API llamada por la app',
+      ],
+      deliverables: [
+        'Informe ejecutivo y técnico',
+        'Evidencias en dispositivo y capturas de tráfico',
+        'Vector CVSS y priorización',
+        'Recomendaciones por plataforma',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 3 semanas, según plataformas, builds disponibles y alcance del backend.',
+    },
+    en: {
+      name: 'Mobile',
+      short: 'Android and iOS applications assessed on device and against their backend.',
+      objective:
+        'Check what the app exposes on the device, which controls can be bypassed by modifying it, and what an attacker gains by targeting its backend directly.',
+      evaluates: [
+        'Local storage: credentials, tokens, caches and databases',
+        'Backend communication, certificate validation and pinning',
+        'Anti-tampering controls, root/jailbreak detection and obfuscation',
+        'Authentication and authorization logic, including client-side decisions',
+        'Exposed platform components and deep links',
+        'The API consumed by the app, as part of the scope',
+      ],
+      methodology: [
+        { title: 'Static analysis', description: 'Package, resources, embedded secrets and configuration review.' },
+        { title: 'Dynamic analysis', description: 'Instrumented on-device execution to observe and modify behaviour.' },
+        { title: 'Traffic', description: 'Interception and manipulation of backend communication.' },
+        { title: 'Backend', description: 'API authorization testing using the application real roles.' },
+      ],
+      tests: [
+        'Extraction of keys, tokens or endpoints embedded in the package',
+        'Sensitive data in unprotected storage or in backups',
+        'Certificate pinning bypass to observe real traffic',
+        'Bypass of authentication controls resolved on the client side',
+        'Access to components or deep links from another application',
+        'Insufficient authorization in the API called by the app',
+      ],
+      deliverables: [
+        'Executive and technical report',
+        'On-device evidence and traffic captures',
+        'CVSS vector and prioritization',
+        'Platform-specific recommendations',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 3 weeks depending on platforms, available builds and backend scope.',
+    },
+  },
+
+  {
+    id: 'cloud',
+    slug: 'cloud',
+    path: '/servicios/cloud',
+    icon: 'Cloud',
+    frameworks: ['CIS Benchmarks', 'MITRE ATT&CK Cloud', 'NIST SP 800-115', 'CVSS'],
+    es: {
+      name: 'Cloud',
+      short: 'Revisión de configuración e identidades en AWS, Azure y GCP, con foco en escalada.',
+      objective:
+        'Determinar qué permisos permiten a una identidad de tu nube llegar más lejos de lo que su función requiere, y qué queda expuesto públicamente sin que nadie lo haya decidido.',
+      evaluates: [
+        'Identidades y permisos: roles, políticas, permisos comodín y confianzas entre cuentas',
+        'Rutas de escalada entre servicios a través de permisos encadenados',
+        'Exposición pública de almacenamiento, bases de datos y funciones',
+        'Redes: reglas de entrada, puntos de acceso administrativos y segmentación',
+        'Cifrado, gestión de claves y secretos',
+        'Registro y auditoría: qué quedaría grabado si esto pasara de verdad',
+      ],
+      methodology: [
+        { title: 'Inventario', description: 'Recolección con acceso de solo lectura acordado por el cliente.' },
+        { title: 'Línea base', description: 'Comparación contra CIS Benchmarks del proveedor correspondiente.' },
+        { title: 'Análisis de permisos', description: 'Modelado de qué puede hacer cada identidad y hasta dónde puede escalar.' },
+        { title: 'Validación', description: 'Comprobación manual de las rutas de escalada relevantes.' },
+      ],
+      tests: [
+        'Identidades capaces de ampliar sus propios permisos',
+        'Recursos de almacenamiento accesibles públicamente',
+        'Roles asumibles desde cuentas externas o desde servicios no previstos',
+        'Metadatos de instancia accesibles desde cargas de trabajo expuestas',
+        'Claves y secretos en variables de entorno, plantillas o imágenes',
+        'Registros de auditoría desactivados o sin retención suficiente',
+      ],
+      deliverables: [
+        'Informe ejecutivo y técnico',
+        'Hallazgos referenciados a CIS Benchmarks',
+        'Grafo de rutas de escalada de privilegios',
+        'Vector CVSS y priorización',
+        'Reunión de cierre',
+      ],
+      duration: 'Habitualmente entre 1 y 2 semanas, según número de cuentas, suscripciones o proyectos y servicios en uso.',
+    },
+    en: {
+      name: 'Cloud',
+      short: 'Configuration and identity review across AWS, Azure and GCP, focused on escalation.',
+      objective:
+        'Determine which permissions let a cloud identity reach further than its function requires, and what ends up publicly exposed without anyone deciding it.',
+      evaluates: [
+        'Identities and permissions: roles, policies, wildcard permissions and cross-account trust',
+        'Escalation paths across services through chained permissions',
+        'Public exposure of storage, databases and functions',
+        'Networking: ingress rules, administrative entry points and segmentation',
+        'Encryption, key management and secrets',
+        'Logging and auditing: what would be recorded if this happened for real',
+      ],
+      methodology: [
+        { title: 'Inventory', description: 'Collection using read-only access agreed with the client.' },
+        { title: 'Baseline', description: 'Comparison against the relevant provider CIS Benchmarks.' },
+        { title: 'Permission analysis', description: 'Modelling what each identity can do and how far it can escalate.' },
+        { title: 'Validation', description: 'Manual verification of the relevant escalation paths.' },
+      ],
+      tests: [
+        'Identities able to widen their own permissions',
+        'Publicly reachable storage resources',
+        'Roles assumable from external accounts or unexpected services',
+        'Instance metadata reachable from exposed workloads',
+        'Keys and secrets in environment variables, templates or images',
+        'Audit logs disabled or without sufficient retention',
+      ],
+      deliverables: [
+        'Executive and technical report',
+        'Findings mapped to CIS Benchmarks',
+        'Privilege escalation path graph',
+        'CVSS vector and prioritization',
+        'Closing meeting',
+      ],
+      duration: 'Typically 1 to 2 weeks depending on accounts, subscriptions or projects and services in use.',
+    },
+  },
+
+  {
+    id: 'red_team',
+    slug: 'red-team',
+    path: '/servicios/red-team',
+    icon: 'Crosshair',
+    frameworks: ['MITRE ATT&CK', 'PTES', 'CVSS'],
+    es: {
+      name: 'Red Team',
+      short: 'Ejercicio dirigido a objetivos que mide detección y respuesta, no solo vulnerabilidades.',
+      objective:
+        'Responder a una pregunta concreta de negocio: si alguien quisiera llegar a este sistema o a estos datos, ¿lo conseguiría y os daríais cuenta?',
+      evaluates: [
+        'Exposición y superficie aprovechable para el acceso inicial',
+        'Resistencia del factor humano ante campañas dirigidas, cuando está en el alcance',
+        'Capacidad de detección y de respuesta del equipo defensivo',
+        'Persistencia, movimiento lateral y escalada hasta los objetivos',
+        'Controles de salida de información y su monitorización',
+      ],
+      methodology: [
+        { title: 'Definición de objetivos', description: 'Qué se considera éxito, qué queda fuera y qué señales se van a medir.' },
+        { title: 'Reconocimiento y OSINT', description: 'Información pública de la organización, sus personas y su tecnología.' },
+        { title: 'Acceso inicial', description: 'Vector acordado: exposición técnica, campaña dirigida o acceso físico.' },
+        { title: 'Operación', description: 'Persistencia, movimiento lateral y avance hacia los objetivos, con registro de tiempos.' },
+        { title: 'Exfiltración controlada', description: 'Salida de datos señuelo para medir la detección, nunca de datos reales.' },
+        { title: 'Purple team', description: 'Sesión conjunta con el equipo defensivo para reproducir y mejorar la detección.' },
+      ],
+      tests: [
+        'Campañas de phishing dirigidas con infraestructura propia',
+        'Acceso inicial a través de exposición técnica del perímetro',
+        'Persistencia y evasión frente a los controles desplegados',
+        'Movimiento lateral hacia los objetivos definidos',
+        'Exfiltración de datos señuelo por canales alternativos',
+        'Línea de tiempo de acciones frente a alertas efectivamente generadas',
+      ],
+      deliverables: [
+        'Informe ejecutivo orientado a la pregunta de negocio planteada',
+        'Línea de tiempo de la operación técnica',
+        'Mapeo de técnicas a MITRE ATT&CK',
+        'Detecciones logradas y detecciones ausentes',
+        'Sesión purple team de cierre',
+      ],
+      duration: 'Ejercicio de varias semanas. La duración es parte del alcance y se acuerda al definir los objetivos.',
+    },
+    en: {
+      name: 'Red Team',
+      short: 'Objective-driven exercise measuring detection and response, not only vulnerabilities.',
+      objective:
+        'Answer a concrete business question: if someone wanted to reach this system or this data, would they succeed and would you notice?',
+      evaluates: [
+        'Exposure and usable surface for initial access',
+        'Human resilience against targeted campaigns, when in scope',
+        'Detection and response capability of the defensive team',
+        'Persistence, lateral movement and escalation towards the objectives',
+        'Data egress controls and their monitoring',
+      ],
+      methodology: [
+        { title: 'Objective definition', description: 'What counts as success, what is out of scope and which signals are measured.' },
+        { title: 'Reconnaissance and OSINT', description: 'Public information about the organization, its people and its technology.' },
+        { title: 'Initial access', description: 'Agreed vector: technical exposure, targeted campaign or physical access.' },
+        { title: 'Operation', description: 'Persistence, lateral movement and progress towards objectives, with timing recorded.' },
+        { title: 'Controlled exfiltration', description: 'Decoy data egress to measure detection, never real data.' },
+        { title: 'Purple team', description: 'Joint session with the defensive team to replay and improve detection.' },
+      ],
+      tests: [
+        'Targeted phishing campaigns with dedicated infrastructure',
+        'Initial access through technical perimeter exposure',
+        'Persistence and evasion against the deployed controls',
+        'Lateral movement towards the defined objectives',
+        'Decoy data exfiltration over alternative channels',
+        'Action timeline against the alerts actually generated',
+      ],
+      deliverables: [
+        'Executive report answering the business question posed',
+        'Technical operation timeline',
+        'Technique mapping to MITRE ATT&CK',
+        'Detections achieved and detections missing',
+        'Closing purple team session',
+      ],
+      duration: 'A multi-week engagement. Duration is part of the scope and is agreed when defining objectives.',
+    },
+  },
+
+  {
+    id: 'retesting',
+    slug: 'retesting',
+    path: '/servicios/retesting',
+    icon: 'RefreshCw',
+    frameworks: ['PTES', 'CVSS'],
+    es: {
+      name: 'Retesting',
+      short: 'Verificación de que las correcciones cierran el hallazgo y no lo desplazan.',
+      objective:
+        'Confirmar, hallazgo por hallazgo, que la corrección aplicada elimina el vector y que no se puede volver a alcanzar el mismo impacto por otra vía.',
+      evaluates: [
+        'Reproducción del hallazgo original con los mismos pasos',
+        'Variantes del mismo vector que la corrección podría no cubrir',
+        'Regresiones introducidas por el propio arreglo',
+        'Estado final de cada hallazgo: cerrado, mitigado o abierto',
+      ],
+      methodology: [
+        { title: 'Revisión del informe previo', description: 'Punto de partida: los hallazgos y evidencias de la evaluación original.' },
+        { title: 'Reproducción', description: 'Repetición exacta de los pasos documentados.' },
+        { title: 'Variantes', description: 'Prueba de rutas alternativas al mismo impacto.' },
+        { title: 'Acta de cierre', description: 'Estado final por hallazgo, con evidencia de la verificación.' },
+      ],
+      tests: [
+        'Repetición de los pasos de reproducción originales',
+        'Codificaciones, rutas y parámetros alternativos al vector corregido',
+        'Comprobación de que la corrección se aplicó en todos los puntos afectados',
+        'Verificación de que el arreglo no rompió un control existente',
+      ],
+      deliverables: [
+        'Informe de retesting con estado por hallazgo',
+        'Evidencia de verificación',
+        'Actualización de la severidad residual',
+        'Acta de cierre',
+      ],
+      duration: 'Depende del número de hallazgos a verificar y de su severidad. Suele ser una fracción de la evaluación original.',
+    },
+    en: {
+      name: 'Retesting',
+      short: 'Verification that fixes close the finding rather than displace it.',
+      objective:
+        'Confirm, finding by finding, that the applied fix removes the vector and that the same impact cannot be reached another way.',
+      evaluates: [
+        'Reproduction of the original finding with the same steps',
+        'Variants of the same vector the fix might not cover',
+        'Regressions introduced by the fix itself',
+        'Final state per finding: closed, mitigated or open',
+      ],
+      methodology: [
+        { title: 'Previous report review', description: 'Starting point: findings and evidence from the original assessment.' },
+        { title: 'Reproduction', description: 'Exact repetition of the documented steps.' },
+        { title: 'Variants', description: 'Testing alternative routes to the same impact.' },
+        { title: 'Closure record', description: 'Final state per finding, with verification evidence.' },
+      ],
+      tests: [
+        'Repetition of the original reproduction steps',
+        'Alternative encodings, routes and parameters around the fixed vector',
+        'Verification that the fix was applied at every affected point',
+        'Check that the fix did not break an existing control',
+      ],
+      deliverables: [
+        'Retesting report with state per finding',
+        'Verification evidence',
+        'Residual severity update',
+        'Closure record',
+      ],
+      duration: 'Depends on the number of findings to verify and their severity. Usually a fraction of the original assessment.',
+    },
+  },
+];
+
+/** Servicio por slug de URL, o null. */
+export function getServiceBySlug(slug) {
+  return SERVICES.find((s) => s.slug === slug) || null;
+}
+
+/** Contenido del servicio en el idioma pedido, con caída a español. */
+export function serviceContent(service, language) {
+  return service[language] || service.es;
+}

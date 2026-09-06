@@ -8,13 +8,13 @@
 #     → POST /api/contact → Worker real → Siteverify real → D1 real → Telegram real
 #
 # Uso:
-#   ./scripts/acceptance-test.sh https://staging.vulnfocus.com
-#   ./scripts/acceptance-test.sh https://staging.vulnfocus.com --auto-only
-#   ./scripts/acceptance-test.sh https://staging.vulnfocus.com --db vulnfocus-staging
+#   ./scripts/acceptance-test.sh https://vulnfocus.com
+#   ./scripts/acceptance-test.sh https://vulnfocus.com --auto-only
+#   ./scripts/acceptance-test.sh https://vulnfocus.com --db vulnfocus-production
 #
 # Opciones:
 #   --auto-only   No hace las fases manuales. Las marca UNVERIFIED.
-#   --db NOMBRE   Base D1 a consultar (por defecto: vulnfocus-staging).
+#   --db NOMBRE   Base D1 a consultar (por defecto: vulnfocus-production).
 #   --no-color    Salida sin códigos ANSI.
 #
 # Estados posibles:
@@ -33,7 +33,7 @@ set -uo pipefail
 # ---------------------------------------------------------------------------
 
 BASE=""
-DB_NAME="vulnfocus-staging"
+DB_NAME="vulnfocus-production"
 AUTO_ONLY=0
 USE_COLOR=1
 
@@ -48,7 +48,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$BASE" ]; then
-  echo "Uso: $0 https://staging.vulnfocus.com [--auto-only] [--db nombre]" >&2
+  echo "Uso: $0 https://vulnfocus.com [--auto-only] [--db nombre]" >&2
   exit 2
 fi
 
@@ -182,9 +182,10 @@ esac
 # ===========================================================================
 # 2 · RUTAS SPA
 # ===========================================================================
-titulo "2 · Rutas SPA (acceso directo por URL)"
+titulo "2 · Rutas del sitio (acceso directo por URL)"
 
-for ruta in / /proceso /recursos /certificaciones; do
+for ruta in / /servicios /servicios/pentesting-web /servicios/active-directory \
+            /proceso /recursos /certificaciones /cotizar /estimacion; do
   key="spa_$(echo "$ruta" | tr -d '/' )"; [ "$ruta" = "/" ] && key="spa_root"
   code=$(http_code -H 'Sec-Fetch-Mode: navigate' "$BASE$ruta")
   html=$(body -H 'Sec-Fetch-Mode: navigate' "$BASE$ruta")
@@ -195,6 +196,21 @@ for ruta in / /proceso /recursos /certificaciones; do
     printf '  %sFAIL%s  %-46s no contiene div#root\n' "$C_BAD" "$C_OFF" "GET $ruta contenido"
     RESULT["$key"]="FAIL"; FAILURES+=("$ruta no devuelve el shell de React")
   fi
+done
+
+# ===========================================================================
+# 2b · Rutas inexistentes
+# ===========================================================================
+# ---------------------------------------------------------------------------
+# Rutas inexistentes: deben terminar en un 404 REAL, no en un 200 con el shell.
+# Depende de assets.not_found_handling = "404-page" y del prerenderizado por
+# ruta que hace scripts/build-site.mjs.
+titulo "2b · Rutas inexistentes (404 real)"
+
+for ruta in /admin /phpmyadmin /wp-admin /.env /.git/config /backup /random \
+            /servicios/inventado /cotizar/algo; do
+  code=$(http_code -H 'Sec-Fetch-Mode: navigate' "$BASE$ruta")
+  check routing_404 "GET $ruta" 404 "$code"
 done
 
 # ===========================================================================
@@ -269,7 +285,7 @@ check_turnstile() { # check_turnstile <clave> <descripción> <código>
   elif [ "$got" = "503" ]; then
     printf '  %sFAIL%s  %-46s 503 — TURNSTILE_SECRET_KEY NO CONFIGURADO\n' "$C_BAD" "$C_OFF" "$desc"
     RESULT["$key"]="FAIL"
-    FAILURES+=("$desc devolvió 503: falta el secreto TURNSTILE_SECRET_KEY en este entorno. Ejecuta: npx wrangler secret put TURNSTILE_SECRET_KEY --env staging")
+    FAILURES+=("$desc devolvió 503: falta el secreto TURNSTILE_SECRET_KEY en este entorno. Ejecuta: npx wrangler secret put TURNSTILE_SECRET_KEY")
   else
     printf '  %sFAIL%s  %-46s esperado=403 obtenido=%s\n' "$C_BAD" "$C_OFF" "$desc" "$got"
     RESULT["$key"]="FAIL"
@@ -632,7 +648,7 @@ DT
 
   En otra terminal:
 
-      npx wrangler tail --env staging --format json > /tmp/vf-logs.json
+      npx wrangler tail --format json > vf-logs.json
 
   Repite un envío, corta con Ctrl-C y comprueba (no imprime valores):
 
@@ -666,10 +682,16 @@ ORDEN=(
   "Cloudflare deployment:deployment"
   "HTTPS:https"
   "Static Assets:assets"
-  "SPA /:spa_root"
-  "SPA /proceso:spa_proceso"
-  "SPA /recursos:spa_recursos"
-  "SPA /certificaciones:spa_certificaciones"
+  "Ruta /:spa_root"
+  "Ruta /servicios:spa_servicios"
+  "Ruta /servicios/pentesting-web:spa_serviciospentesting-web"
+  "Ruta /servicios/active-directory:spa_serviciosactive-directory"
+  "Ruta /proceso:spa_proceso"
+  "Ruta /recursos:spa_recursos"
+  "Ruta /certificaciones:spa_certificaciones"
+  "Ruta /cotizar:spa_cotizar"
+  "Ruta /estimacion:spa_estimacion"
+  "404 real en rutas inexistentes:routing_404"
   "API health:api_health"
   "API deny-by-default:api_deny"
   "Method restrictions:methods"
@@ -695,7 +717,7 @@ emitir_tabla() {
   for e in "${ORDEN[@]}"; do
     printf '%-34s %s\n' "${e%%:*}" "${RESULT[${e#*:}]:-UNVERIFIED}"
   done
-  printf '\n%-34s %s\n' "LOCAL TESTS" "73/73 PASS"
+  printf '\n%-34s %s\n' "LOCAL TESTS" "178/178 PASS"
   printf '%-34s %s\n' "CUTOVER" "NOT EXECUTED"
 }
 

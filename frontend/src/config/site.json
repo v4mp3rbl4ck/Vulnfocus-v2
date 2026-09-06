@@ -1,0 +1,273 @@
+{
+  "_comment": "Manifiesto ÚNICO de rutas públicas. Lo consumen (1) el router de React, (2) scripts/build-site.mjs para prerenderizar un HTML por ruta, generar 404.html y el sitemap. Añadir una ruta aquí es lo único necesario para que exista, devuelva 200 y tenga SEO propio. Lo que no está aquí no existe como asset y termina en 404.",
+  "baseUrl": "https://vulnfocus.com",
+  "defaultLocale": "es",
+  "brand": "VulnFocus",
+  "routes": [
+    {
+      "path": "/",
+      "sitemap": { "priority": "1.0", "changefreq": "weekly" },
+      "seo": {
+        "es": {
+          "title": "VulnFocus | Pentesting manual y seguridad ofensiva en Chile",
+          "description": "Pentesting manual, ethical hacking y simulación adversaria para organizaciones que necesitan validar su exposición real. Solicita una evaluación o cotiza tu pentest.",
+          "keywords": "pentesting chile, ethical hacking chile, seguridad ofensiva, red team, auditoría de seguridad"
+        },
+        "en": {
+          "title": "VulnFocus | Manual pentesting and offensive security",
+          "description": "Manual penetration testing, ethical hacking and adversary simulation for organizations that need to validate their real exposure. Request an assessment or get a quote.",
+          "keywords": "pentesting, ethical hacking, offensive security, red team, security assessment"
+        }
+      }
+    },
+    {
+      "path": "/servicios",
+      "sitemap": { "priority": "0.9", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Servicios de pentesting y seguridad ofensiva | VulnFocus",
+          "description": "Pentesting web, API, infraestructura externa e interna, Active Directory, mobile, cloud, Red Team y retesting. Alcance, metodología y entregables de cada servicio.",
+          "keywords": "servicios de pentesting, pentesting web, pentesting api, red team, active directory"
+        },
+        "en": {
+          "title": "Offensive security services | VulnFocus",
+          "description": "Web, API, external and internal infrastructure, Active Directory, mobile, cloud, Red Team and retesting. Scope, methodology and deliverables for each service.",
+          "keywords": "pentesting services, web pentest, api pentest, red team, active directory"
+        }
+      }
+    },
+    {
+      "path": "/servicios/pentesting-web",
+      "service": "web",
+      "sitemap": { "priority": "0.9", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Pentesting Web | Evaluación manual de aplicaciones | VulnFocus",
+          "description": "Pentesting manual de aplicaciones web bajo OWASP WSTG y ASVS: control de acceso, lógica de negocio, autenticación y cadenas de explotación con impacto verificado.",
+          "keywords": "pentesting web, owasp wstg, asvs, auditoría aplicación web"
+        },
+        "en": {
+          "title": "Web Pentesting | Manual application testing | VulnFocus",
+          "description": "Manual web application penetration testing under OWASP WSTG and ASVS: access control, business logic, authentication and verified exploitation chains.",
+          "keywords": "web pentesting, owasp wstg, asvs, web application audit"
+        }
+      }
+    },
+    {
+      "path": "/servicios/pentesting-api",
+      "service": "api",
+      "sitemap": { "priority": "0.9", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Pentesting de API REST y GraphQL | VulnFocus",
+          "description": "Evaluación manual de APIs REST, GraphQL y gRPC siguiendo OWASP API Security Top 10: BOLA, BFLA, exposición de datos y abuso de lógica entre roles.",
+          "keywords": "pentesting api, owasp api security, graphql, bola, seguridad de apis"
+        },
+        "en": {
+          "title": "REST and GraphQL API pentesting | VulnFocus",
+          "description": "Manual assessment of REST, GraphQL and gRPC APIs following the OWASP API Security Top 10: BOLA, BFLA, data exposure and cross-role logic abuse.",
+          "keywords": "api pentesting, owasp api security, graphql, bola"
+        }
+      }
+    },
+    {
+      "path": "/servicios/infraestructura-externa",
+      "service": "infra_externa",
+      "sitemap": { "priority": "0.8", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Pentesting de infraestructura externa | VulnFocus",
+          "description": "Evaluación del perímetro expuesto a Internet: descubrimiento de superficie, servicios accesibles, credenciales débiles y validación manual de vectores de entrada.",
+          "keywords": "pentesting infraestructura, perímetro externo, superficie de ataque"
+        },
+        "en": {
+          "title": "External infrastructure pentesting | VulnFocus",
+          "description": "Assessment of the Internet-facing perimeter: attack surface discovery, reachable services, weak credentials and manual validation of entry vectors.",
+          "keywords": "infrastructure pentesting, external perimeter, attack surface"
+        }
+      }
+    },
+    {
+      "path": "/servicios/infraestructura-interna",
+      "service": "infra_interna",
+      "sitemap": { "priority": "0.8", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Pentesting de infraestructura interna | VulnFocus",
+          "description": "Simulación de un atacante ya dentro de la red: segmentación, servicios internos, escalada de privilegios y movimiento lateral hasta el impacto real.",
+          "keywords": "pentesting interno, movimiento lateral, segmentación de red"
+        },
+        "en": {
+          "title": "Internal infrastructure pentesting | VulnFocus",
+          "description": "Simulation of an attacker already inside the network: segmentation, internal services, privilege escalation and lateral movement up to real impact.",
+          "keywords": "internal pentesting, lateral movement, network segmentation"
+        }
+      }
+    },
+    {
+      "path": "/servicios/active-directory",
+      "service": "active_directory",
+      "sitemap": { "priority": "0.9", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Auditoría de Active Directory | Rutas de ataque a dominio | VulnFocus",
+          "description": "Evaluación ofensiva de Active Directory: delegaciones, ACLs, Kerberos, relaciones de confianza y rutas de ataque desde usuario sin privilegios hasta Domain Admin.",
+          "keywords": "auditoría active directory, kerberoasting, adcs, rutas de ataque dominio"
+        },
+        "en": {
+          "title": "Active Directory security assessment | VulnFocus",
+          "description": "Offensive Active Directory assessment: delegations, ACLs, Kerberos, trusts and attack paths from an unprivileged user to Domain Admin.",
+          "keywords": "active directory audit, kerberoasting, adcs, domain attack paths"
+        }
+      }
+    },
+    {
+      "path": "/servicios/mobile",
+      "service": "mobile",
+      "sitemap": { "priority": "0.8", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Pentesting de aplicaciones móviles Android e iOS | VulnFocus",
+          "description": "Evaluación de apps Android e iOS bajo OWASP MASVS y MASTG: almacenamiento local, comunicación con el backend, controles antimanipulación y lógica de autenticación.",
+          "keywords": "pentesting mobile, android, ios, owasp masvs, mastg"
+        },
+        "en": {
+          "title": "Android and iOS mobile app pentesting | VulnFocus",
+          "description": "Android and iOS assessment under OWASP MASVS and MASTG: local storage, backend communication, anti-tampering controls and authentication logic.",
+          "keywords": "mobile pentesting, android, ios, owasp masvs, mastg"
+        }
+      }
+    },
+    {
+      "path": "/servicios/cloud",
+      "service": "cloud",
+      "sitemap": { "priority": "0.8", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Revisión de seguridad cloud AWS, Azure y GCP | VulnFocus",
+          "description": "Revisión de configuración e IAM en AWS, Azure y GCP con referencia CIS Benchmarks: permisos excesivos, exposición pública y rutas de escalada entre servicios.",
+          "keywords": "seguridad cloud, aws, azure, gcp, iam, cis benchmarks"
+        },
+        "en": {
+          "title": "AWS, Azure and GCP cloud security review | VulnFocus",
+          "description": "Configuration and IAM review across AWS, Azure and GCP against CIS Benchmarks: excessive permissions, public exposure and cross-service escalation paths.",
+          "keywords": "cloud security, aws, azure, gcp, iam, cis benchmarks"
+        }
+      }
+    },
+    {
+      "path": "/servicios/red-team",
+      "service": "red_team",
+      "sitemap": { "priority": "0.9", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Red Team | Simulación adversaria dirigida a objetivos | VulnFocus",
+          "description": "Ejercicio Red Team alineado a MITRE ATT&CK: OSINT, acceso inicial, persistencia, movimiento lateral y exfiltración controlada para medir detección y respuesta.",
+          "keywords": "red team chile, mitre att&ck, simulación adversaria, purple team"
+        },
+        "en": {
+          "title": "Red Team | Objective-driven adversary simulation | VulnFocus",
+          "description": "MITRE ATT&CK-aligned Red Team engagement: OSINT, initial access, persistence, lateral movement and controlled exfiltration to measure detection and response.",
+          "keywords": "red team, mitre att&ck, adversary simulation, purple team"
+        }
+      }
+    },
+    {
+      "path": "/servicios/retesting",
+      "service": "retesting",
+      "sitemap": { "priority": "0.7", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Retesting de vulnerabilidades corregidas | VulnFocus",
+          "description": "Verificación de que las correcciones aplicadas cierran realmente el hallazgo, sin reintroducir el vector por otra vía, con acta de cierre por vulnerabilidad.",
+          "keywords": "retesting, verificación de remediación, revalidación de hallazgos"
+        },
+        "en": {
+          "title": "Remediation retesting | VulnFocus",
+          "description": "Verification that applied fixes actually close each finding without reintroducing the vector through another path, with a closure record per vulnerability.",
+          "keywords": "retesting, remediation verification, finding revalidation"
+        }
+      }
+    },
+    {
+      "path": "/proceso",
+      "sitemap": { "priority": "0.8", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Cómo trabajamos: del alcance al retesting | VulnFocus",
+          "description": "Proceso de un pentest manual paso a paso y en qué se diferencia de pasar un escáner de vulnerabilidades: descubrimiento, validación manual, explotación, impacto y remediación.",
+          "keywords": "proceso pentesting, escaneo vs pentesting, metodología ptes"
+        },
+        "en": {
+          "title": "How we work: from scoping to retesting | VulnFocus",
+          "description": "Step-by-step manual pentest process and how it differs from running a vulnerability scanner: discovery, manual validation, exploitation, impact and remediation.",
+          "keywords": "pentesting process, scanning vs pentesting, ptes methodology"
+        }
+      }
+    },
+    {
+      "path": "/recursos",
+      "sitemap": { "priority": "0.8", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Entregables de un pentest: qué recibe el cliente | VulnFocus",
+          "description": "Informe ejecutivo, informe técnico, evidencias reproducibles, severidad CVSS, rutas de ataque, recomendaciones, reunión de cierre y retesting cuando corresponde.",
+          "keywords": "entregables pentesting, informe de seguridad, cvss, evidencias"
+        },
+        "en": {
+          "title": "Pentest deliverables: what the client receives | VulnFocus",
+          "description": "Executive report, technical report, reproducible evidence, CVSS severity, attack paths, recommendations, closing meeting and retesting where applicable.",
+          "keywords": "pentest deliverables, security report, cvss, evidence"
+        }
+      }
+    },
+    {
+      "path": "/certificaciones",
+      "sitemap": { "priority": "0.6", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Certificaciones y marcos de referencia | VulnFocus",
+          "description": "Marcos metodológicos aplicados en cada evaluación: OWASP WSTG, ASVS, API Security, MASVS, PTES, NIST SP 800-115, MITRE ATT&CK, CIS Benchmarks y CVSS.",
+          "keywords": "owasp, ptes, nist 800-115, mitre att&ck, cis benchmarks, cvss"
+        },
+        "en": {
+          "title": "Certifications and reference frameworks | VulnFocus",
+          "description": "Methodological frameworks applied in every engagement: OWASP WSTG, ASVS, API Security, MASVS, PTES, NIST SP 800-115, MITRE ATT&CK, CIS Benchmarks and CVSS.",
+          "keywords": "owasp, ptes, nist 800-115, mitre att&ck, cis benchmarks, cvss"
+        }
+      }
+    },
+    {
+      "path": "/cotizar",
+      "sitemap": { "priority": "0.9", "changefreq": "monthly" },
+      "seo": {
+        "es": {
+          "title": "Cotiza tu pentest | Estimación preliminar en minutos | VulnFocus",
+          "description": "Responde el alcance de tu evaluación y obtén una estimación referencial de esfuerzo y duración. Sin compromiso y sujeta a validación final del alcance.",
+          "keywords": "cotizar pentest, precio pentesting, presupuesto ethical hacking"
+        },
+        "en": {
+          "title": "Quote your pentest | Preliminary estimate in minutes | VulnFocus",
+          "description": "Describe the scope of your assessment and get a referential effort and duration estimate. No commitment, subject to final scope validation.",
+          "keywords": "pentest quote, pentesting price, security assessment budget"
+        }
+      }
+    },
+    {
+      "path": "/estimacion",
+      "noindex": true,
+      "seo": {
+        "es": {
+          "title": "Estimación preliminar | VulnFocus",
+          "description": "Consulta de una estimación preliminar de VulnFocus.",
+          "keywords": ""
+        },
+        "en": {
+          "title": "Preliminary estimate | VulnFocus",
+          "description": "VulnFocus preliminary estimate lookup.",
+          "keywords": ""
+        }
+      }
+    }
+  ]
+}

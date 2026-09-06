@@ -1,4 +1,5 @@
 import { logEvent } from "./http.js";
+import { complexityLabel, serviceList } from "./quote/labels.js";
 
 export const TELEGRAM_MAX_MESSAGE = 3500; // límite real de Telegram: 4096; margen de seguridad
 export const TELEGRAM_TIMEOUT_MS = 5000;
@@ -28,12 +29,56 @@ export function buildTelegramText(contact) {
 }
 
 /**
- * Envía la notificación. Nunca lanza: se invoca desde ctx.waitUntil() y un fallo
- * NO debe afectar a la respuesta ya devuelta al usuario ni al dato ya guardado.
+ * Resumen comercial de una cotización. Igual que el de contacto: texto plano,
+ * sin parse_mode, y sin datos que no hagan falta para decidir si llamar.
+ *
+ * Deliberadamente NO se envían las notas libres del cliente ni el desglose
+ * interno del cálculo: la fuente de verdad es D1 y el canal de Telegram es solo
+ * un aviso.
  */
-export async function sendTelegramNotification(contact, env) {
+export function buildQuoteTelegramText(quote) {
+  const price = quote.pricing?.available
+    ? `${formatAmount(quote.pricing.min)} - ${formatAmount(quote.pricing.max)} ${quote.pricing.currency}`
+    : "(sin precio: tarifa no configurada)";
+
+  const lines = [
+    "Nueva oportunidad VulnFocus",
+    "",
+    `ID: ${quote.quoteNumber}`,
+    `Empresa: ${quote.company}`,
+    `Contacto: ${quote.contactName}`,
+    `Email: ${quote.email}`,
+    `Telefono: ${quote.phone || "(no indicado)"}`,
+    "",
+    // Etiquetas del catálogo, no identificadores internos: el aviso se lee en un
+    // móvil para decidir si hay que llamar, no para depurar el motor.
+    `Servicio: ${serviceList(quote.services)}`,
+    `Complejidad: ${complexityLabel(quote.complexity)}`,
+    `Esfuerzo: ${quote.minDays}-${quote.maxDays} dias (${quote.minHours}-${quote.maxHours} h)`,
+    `Estimacion: ${price}`,
+    "",
+    `Fecha: ${quote.createdAt}`,
+  ];
+
+  const text = lines.join("\n");
+  return text.length > TELEGRAM_MAX_MESSAGE
+    ? `${text.slice(0, TELEGRAM_MAX_MESSAGE)}\n[...truncado]`
+    : text;
+}
+
+/** Separador de miles sin depender de Intl ni de la moneda. */
+function formatAmount(value) {
+  return String(Math.round(Number(value) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/**
+ * Envía un texto ya construido. Nunca lanza: se invoca desde ctx.waitUntil() y
+ * un fallo NO debe afectar a la respuesta ya devuelta al usuario ni al dato ya
+ * guardado en D1.
+ */
+export async function sendTelegramText(text, env, id) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) {
-    logEvent("telegram_skipped", { reason: "not-configured", id: contact.id });
+    logEvent("telegram_skipped", { reason: "not-configured", id });
     return { ok: false, reason: "not-configured" };
   }
   try {
@@ -44,7 +89,7 @@ export async function sendTelegramNotification(contact, env) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: env.TELEGRAM_CHAT_ID,
-          text: buildTelegramText(contact),
+          text,
           disable_web_page_preview: true,
         }),
         signal: AbortSignal.timeout(TELEGRAM_TIMEOUT_MS),
@@ -53,13 +98,18 @@ export async function sendTelegramNotification(contact, env) {
     // Solo se registra el código HTTP. El cuerpo de error de Telegram puede
     // reflejar la URL (y con ella el token), así que no se loguea nunca.
     if (res.ok) {
-      logEvent("telegram_sent", { id: contact.id });
+      logEvent("telegram_sent", { id });
       return { ok: true };
     }
-    logEvent("telegram_failed", { id: contact.id, http_status: res.status });
+    logEvent("telegram_failed", { id, http_status: res.status });
     return { ok: false, reason: `http-${res.status}` };
   } catch {
-    logEvent("telegram_failed", { id: contact.id, http_status: "network-error" });
+    logEvent("telegram_failed", { id, http_status: "network-error" });
     return { ok: false, reason: "network-error" };
   }
+}
+
+/** Notificación de un contacto del formulario. */
+export async function sendTelegramNotification(contact, env) {
+  return sendTelegramText(buildTelegramText(contact), env, contact.id);
 }

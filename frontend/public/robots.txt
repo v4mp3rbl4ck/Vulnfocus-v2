@@ -1,35 +1,13 @@
-# robots.txt para VulnFocus SPA
-# https://vulnfocus.com
+# robots.txt — https://vulnfocus.com
 
-# Permitir todos los crawlers
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://vulnfocus.com/sitemap.xml
-
-# Bloquear carpetas de sistema (si existieran)
+# La API no tiene contenido indexable.
 Disallow: /api/
-Disallow: /_next/
-Disallow: /admin/
 
-# Permitir recursos estáticos
-Allow: /static/
-Allow: /*.js$
-Allow: /*.css$
-Allow: /*.png$
-Allow: /*.jpg$
-Allow: /*.svg$
+# Consulta de estimaciones: cada URL lleva un identificador privado en el
+# parámetro `id`. Las páginas ya se sirven con `noindex`; esto es refuerzo.
+Disallow: /estimacion
 
-# Crawl-delay para ser amigable con el servidor
-Crawl-delay: 1
-
-# Reglas específicas para Googlebot
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-# Reglas para Bingbot
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
+Sitemap: https://vulnfocus.com/sitemap.xml

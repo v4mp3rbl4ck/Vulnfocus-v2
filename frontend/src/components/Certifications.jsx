@@ -1,165 +1,56 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Shield, Award, CheckCircle, BadgeCheck } from 'lucide-react';
+import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import useReveal from '../hooks/useReveal';
+
+/**
+ * Marcos de referencia aplicados en las evaluaciones.
+ *
+ * Aquí NO se publican certificaciones profesionales. La versión anterior de esta
+ * página afirmaba OSCP, CEH, CISSP y eWPT del "equipo"; no es verificable desde
+ * el repositorio y publicar una acreditación que no se posee es un problema
+ * legal, no de copy. El propietario puede reactivarlas rellenando
+ * TEAM_CERTIFICATIONS con las que estén vigentes: la interfaz ya está preparada
+ * y, mientras la lista esté vacía, la sección sencillamente no se renderiza.
+ *
+ * REQUIERE CONFIGURACIÓN DEL PROPIETARIO.
+ */
+const TEAM_CERTIFICATIONS = [
+  // { name: 'OSCP', fullName: 'Offensive Security Certified Professional', holder: '', year: 2024 },
+];
 
 const Certifications = () => {
-  const { language } = useLanguage();
-  const [visible, setVisible] = useState(false);
-  const sectionRef = useRef(null);
-
-  const content = {
-    es: {
-      title: 'Certificaciones y Competencias',
-      subtitle: 'Nuestro equipo cuenta con las certificaciones más reconocidas en la industria de ciberseguridad',
-      certifications: [
-        {
-          name: 'OSCP',
-          fullName: 'Offensive Security Certified Professional',
-          description: 'Certificación práctica en penetration testing',
-          icon: Shield
-        },
-        {
-          name: 'CEH',
-          fullName: 'Certified Ethical Hacker',
-          description: 'Hacking ético y técnicas de intrusión',
-          icon: BadgeCheck
-        },
-        {
-          name: 'CISSP',
-          fullName: 'Certified Information Systems Security Professional',
-          description: 'Gestión de seguridad de la información',
-          icon: Award
-        },
-        {
-          name: 'eWPT',
-          fullName: 'eLearnSecurity Web Penetration Tester',
-          description: 'Especialización en seguridad web',
-          icon: CheckCircle
-        }
-      ],
-      frameworks: [
-        'OWASP Top 10',
-        'PTES',
-        'NIST',
-        'ISO 27001',
-        'PCI DSS',
-        'MITRE ATT&CK'
-      ],
-      frameworksTitle: 'Frameworks y Estándares'
-    },
-    en: {
-      title: 'Certifications & Expertise',
-      subtitle: 'Our team holds the most recognized certifications in the cybersecurity industry',
-      certifications: [
-        {
-          name: 'OSCP',
-          fullName: 'Offensive Security Certified Professional',
-          description: 'Hands-on penetration testing certification',
-          icon: Shield
-        },
-        {
-          name: 'CEH',
-          fullName: 'Certified Ethical Hacker',
-          description: 'Ethical hacking and intrusion techniques',
-          icon: BadgeCheck
-        },
-        {
-          name: 'CISSP',
-          fullName: 'Certified Information Systems Security Professional',
-          description: 'Information security management',
-          icon: Award
-        },
-        {
-          name: 'eWPT',
-          fullName: 'eLearnSecurity Web Penetration Tester',
-          description: 'Web security specialization',
-          icon: CheckCircle
-        }
-      ],
-      frameworks: [
-        'OWASP Top 10',
-        'PTES',
-        'NIST',
-        'ISO 27001',
-        'PCI DSS',
-        'MITRE ATT&CK'
-      ],
-      frameworksTitle: 'Frameworks & Standards'
-    }
-  };
-
-  const t = content[language] || content.es;
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    // Se copia la ref a una variable local: en el cleanup, sectionRef.current
-    // puede apuntar ya a otro nodo y se desobservaría el equivocado.
-    const nodo = sectionRef.current;
-    if (nodo) {
-      observer.observe(nodo);
-    }
-
-    return () => {
-      if (nodo) {
-        observer.unobserve(nodo);
-      }
-    };
-  }, []);
+  const { t } = useLanguage();
+  const [ref, visible] = useReveal();
 
   return (
-    <section id="certifications" className="section-container" ref={sectionRef}>
+    <section id="marcos" className="section-container" ref={ref} aria-labelledby="frameworks-title">
       <div className="content-wrapper">
-        <h2 className={`section-title ${visible ? 'fade-in-up' : ''}`}>
-          {t.title}
+        <h2 id="frameworks-title" className={`section-title ${visible ? 'fade-in-up' : ''}`}>
+          {t.methodology.title}
         </h2>
-        <p className={`section-subtitle ${visible ? 'fade-in-up' : ''}`}>
-          {t.subtitle}
-        </p>
+        <p className={`section-subtitle ${visible ? 'fade-in-up' : ''}`}>{t.methodology.intro}</p>
 
-        {/* Certificaciones */}
-        <div className="certifications-grid">
-          {t.certifications.map((cert, index) => {
-            const IconComponent = cert.icon;
-            return (
-              <div
-                key={index}
-                className={`certification-card ${visible ? 'fade-in-up' : ''}`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="certification-icon">
-                  <IconComponent size={32} />
-                </div>
-                <div className="certification-content">
-                  <h3 className="certification-name">{cert.name}</h3>
-                  <p className="certification-fullname">{cert.fullName}</p>
-                  <p className="certification-description">{cert.description}</p>
-                </div>
-              </div>
-            );
-          })}
+        <div className="methodology-list">
+          {t.methodology.frameworks.map((framework) => (
+            <article key={framework.name} className={`methodology-item ${visible ? 'fade-in-up' : ''}`}>
+              <h3 className="methodology-name">{framework.name}</h3>
+              <p className="methodology-description">{framework.description}</p>
+            </article>
+          ))}
         </div>
 
-        {/* Frameworks */}
-        <div className={`frameworks-section ${visible ? 'fade-in-up' : ''}`}>
-          <h3 className="frameworks-title">{t.frameworksTitle}</h3>
-          <div className="frameworks-badges">
-            {t.frameworks.map((framework, index) => (
-              <span key={index} className="framework-badge">
-                {framework}
-              </span>
+        {TEAM_CERTIFICATIONS.length > 0 && (
+          <div className="certifications-grid">
+            {TEAM_CERTIFICATIONS.map((cert) => (
+              <article key={cert.name} className="certification-card">
+                <h3 className="certification-name">{cert.name}</h3>
+                <p className="certification-fullname">{cert.fullName}</p>
+              </article>
             ))}
           </div>
-        </div>
+        )}
+
+        <p className="section-note">{t.methodology.footer}</p>
       </div>
     </section>
   );

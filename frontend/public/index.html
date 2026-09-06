@@ -4,70 +4,72 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        
-        <!-- SEO Básico -->
-        <title>VulnFocus SPA | Servicios de Pentesting y Ciberseguridad Profesional</title>
-        <meta name="description" content="VulnFocus SPA ofrece servicios profesionales de pentesting, ethical hacking, análisis de vulnerabilidades y ciberseguridad para empresas. Protege tu infraestructura con expertos certificados." />
-        <meta name="keywords" content="pentesting, ethical hacking, ciberseguridad, seguridad informática, análisis de vulnerabilidades, pentest, hacking ético, auditoría de seguridad, OWASP, threat hunting, Chile" />
-        <meta name="author" content="VulnFocus SPA" />
+
+        <!--
+          BLOQUE SEO POR RUTA.
+
+          Todo lo que hay entre los dos <meta name="vf-seo"> lo REEMPLAZA
+          scripts/build-site.mjs con los metadatos de cada ruta declarada en
+          frontend/src/config/site.json, generando un HTML propio por URL.
+
+          Lo que queda escrito aquí es el contenido de la ruta "/" y actúa como
+          contenido por defecto si el post-build no llegara a ejecutarse.
+          No edites este bloque a mano: edita el manifiesto.
+
+          Los marcadores son <meta>, no comentarios, a propósito: el minificador
+          de HTML de CRA elimina los comentarios en el build de producción y se
+          llevaría por delante cualquier marca basada en comentarios.
+        -->
+        <meta name="vf-seo" content="start" />
+        <title>VulnFocus | Pentesting manual y seguridad ofensiva en Chile</title>
+        <meta name="description" content="Pentesting manual, ethical hacking y simulación adversaria para organizaciones que necesitan validar su exposición real. Solicita una evaluación o cotiza tu pentest." />
+        <meta name="keywords" content="pentesting chile, ethical hacking chile, seguridad ofensiva, red team, auditoría de seguridad" />
         <meta name="robots" content="index, follow" />
-        <meta name="googlebot" content="index, follow" />
-        
-        <!-- Canonical URL -->
         <link rel="canonical" href="https://vulnfocus.com/" />
-        
-        <!-- Idioma alternativo -->
         <link rel="alternate" hreflang="es" href="https://vulnfocus.com/" />
-        <link rel="alternate" hreflang="en" href="https://vulnfocus.com/?lang=en" />
         <link rel="alternate" hreflang="x-default" href="https://vulnfocus.com/" />
-        
-        <!-- Theme Color -->
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="VulnFocus" />
+        <meta property="og:locale" content="es_CL" />
+        <meta property="og:url" content="https://vulnfocus.com/" />
+        <meta property="og:title" content="VulnFocus | Pentesting manual y seguridad ofensiva en Chile" />
+        <meta property="og:description" content="Pentesting manual, ethical hacking y simulación adversaria para organizaciones que necesitan validar su exposición real." />
+        <meta property="og:image" content="https://vulnfocus.com/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="VulnFocus | Pentesting manual y seguridad ofensiva en Chile" />
+        <meta name="twitter:description" content="Pentesting manual, ethical hacking y simulación adversaria para organizaciones que necesitan validar su exposición real." />
+        <meta name="twitter:image" content="https://vulnfocus.com/og-image.png" />
+        <meta name="vf-seo" content="end" />
+
+        <meta name="author" content="VulnFocus" />
         <meta name="theme-color" content="#0080FF" />
         <meta name="msapplication-TileColor" content="#0080FF" />
-        
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://vulnfocus.com/" />
-        <meta property="og:title" content="VulnFocus SPA | Pentesting y Ciberseguridad Profesional" />
-        <meta property="og:description" content="Servicios profesionales de pentesting, ethical hacking y análisis de vulnerabilidades. Protege tu empresa con expertos certificados en ciberseguridad." />
-        <meta property="og:image" content="https://vulnfocus.com/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="es_CL" />
-        <meta property="og:locale:alternate" content="en_US" />
-        <meta property="og:site_name" content="VulnFocus SPA" />
-        
-        <!-- Twitter Card -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://vulnfocus.com/" />
-        <meta name="twitter:title" content="VulnFocus SPA | Pentesting y Ciberseguridad Profesional" />
-        <meta name="twitter:description" content="Servicios profesionales de pentesting, ethical hacking y análisis de vulnerabilidades. Protege tu empresa con expertos certificados." />
-        <meta name="twitter:image" content="https://vulnfocus.com/og-image.png" />
-        
+
         <!-- Favicon -->
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        
+
         <!-- Preconnect para Performance -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        
+
         <!-- Fonts con display=swap para mejor rendimiento -->
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        
-        <!-- Schema.org JSON-LD - Organization -->
+
+        <!-- Schema.org JSON-LD — identidad de la organización (común a todas las rutas). -->
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": "VulnFocus SPA",
+            "name": "VulnFocus",
+            "alternateName": "VulnFocus SPA",
             "url": "https://vulnfocus.com",
             "logo": "https://vulnfocus.com/logo.png",
-            "description": "Servicios profesionales de pentesting, ethical hacking y ciberseguridad para empresas.",
+            "description": "Pentesting manual, ethical hacking y seguridad ofensiva para organizaciones.",
             "contactPoint": {
                 "@type": "ContactPoint",
                 "telephone": "+56-9-6413-4886",
@@ -85,72 +87,18 @@
             }
         }
         </script>
-        
-        <!-- Schema.org JSON-LD - Service -->
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "serviceType": "Cybersecurity Services",
-            "provider": {
-                "@type": "Organization",
-                "name": "VulnFocus SPA"
-            },
-            "name": "Servicios de Pentesting y Ciberseguridad",
-            "description": "Pentesting de APIs, Ethical Hacking Web y de Infraestructura, Phishing controlado y Threat Hunting.",
-            "areaServed": {
-                "@type": "Country",
-                "name": "Chile"
-            },
-            "hasOfferCatalog": {
-                "@type": "OfferCatalog",
-                "name": "Servicios de Ciberseguridad",
-                "itemListElement": [
-                    {
-                        "@type": "Offer",
-                        "itemOffered": {
-                            "@type": "Service",
-                            "name": "Pentesting de APIs"
-                        }
-                    },
-                    {
-                        "@type": "Offer",
-                        "itemOffered": {
-                            "@type": "Service",
-                            "name": "Ethical Hacking Web"
-                        }
-                    },
-                    {
-                        "@type": "Offer",
-                        "itemOffered": {
-                            "@type": "Service",
-                            "name": "Ethical Hacking de Infraestructura"
-                        }
-                    },
-                    {
-                        "@type": "Offer",
-                        "itemOffered": {
-                            "@type": "Service",
-                            "name": "Threat Hunting"
-                        }
-                    }
-                ]
-            }
-        }
-        </script>
-        
-        <!-- Schema.org JSON-LD - WebSite con SearchAction -->
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": "VulnFocus SPA",
+            "name": "VulnFocus",
             "url": "https://vulnfocus.com",
-            "description": "Servicios profesionales de pentesting y ciberseguridad",
+            "description": "Pentesting manual y seguridad ofensiva",
             "inLanguage": ["es", "en"]
         }
         </script>
-        <!-- Cloudflare Turnstile (render explícito: el widget lo monta Contact.jsx) -->
+
+        <!-- Cloudflare Turnstile (render explícito: el widget lo montan los formularios) -->
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     </head>
     <body>

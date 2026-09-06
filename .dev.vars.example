@@ -1,0 +1,43 @@
+# Copiar a `.dev.vars` para desarrollo local con `npm run dev`.
+# `.dev.vars` NO se versiona: está en .gitignore.
+#
+# Todos los valores de este fichero son claves de PRUEBA PÚBLICAS documentadas
+# por Cloudflare o marcadores inertes. Aquí NUNCA va un secreto real: los
+# secretos de verdad viven en Cloudflare Secrets (`wrangler secret put`).
+
+# --- Turnstile ---------------------------------------------------------------
+# Clave secreta de PRUEBA que siempre valida (documentación oficial de Cloudflare).
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# En local el widget se sirve desde localhost, así que la allowlist debe
+# incluirlo o Siteverify devolverá hostname-mismatch.
+#
+# Si pruebas la API con curl en vez de con el widget, Siteverify responde con
+# hostname "example.com" para un token cualquiera: añade ese hostname a esta
+# lista solo durante esa prueba, y quítalo después.
+TURNSTILE_ALLOWED_HOSTNAMES=localhost,127.0.0.1,vulnfocus.com,www.vulnfocus.com
+
+# --- Telegram ----------------------------------------------------------------
+# Vacíos a propósito: sin token el Worker registra "telegram_skipped" y sigue.
+# Rellenar solo si quieres probar el envío real contra un chat de pruebas.
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+
+# --- Cotizador ---------------------------------------------------------------
+# "true" habilita el rango económico. Requiere además tarifas configuradas en
+# worker/config/quote-config.js; si no las hay, la estimación sale sin precio.
+PRICING_ENABLED=false
+
+# --- Notificaciones ----------------------------------------------------------
+# "null" = adaptador inerte. Ver docs/INTEGRATIONS.md.
+EMAIL_PROVIDER=null
+EMAIL_FROM=
+EMAIL_INTERNAL_TO=
+# RESEND_API_KEY=            # solo con EMAIL_PROVIDER=resend
+# MAILCHANNELS_API_KEY=      # solo con EMAIL_PROVIDER=mailchannels
+
+CRM_PROVIDER=null
+SYSREPTOR_ENABLED=false
+
+# --- Datos personales --------------------------------------------------------
+STORE_IP=false

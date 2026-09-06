@@ -1,0 +1,359 @@
+{
+  "_comment": "CATÁLOGO PÚBLICO DEL COTIZADOR. Fuente única de las preguntas del wizard. Lo importa el frontend (para renderizar) y el Worker (como allowlist de validación), desde este mismo fichero, para que no puedan desincronizarse. NO contiene horas, tarifas, multiplicadores ni ningún dato comercial: eso vive en worker/config/quote-config.js y nunca llega al navegador.",
+  "version": 1,
+  "maxServices": 3,
+  "steps": ["service", "scope", "context", "contact", "estimate"],
+
+  "services": [
+    {
+      "id": "web",
+      "icon": "Globe",
+      "labels": { "es": "Pentesting Web", "en": "Web Pentesting" },
+      "summary": {
+        "es": "Aplicaciones web, portales y paneles administrativos.",
+        "en": "Web applications, portals and admin panels."
+      },
+      "questions": [
+        { "id": "apps", "type": "number", "min": 1, "max": 50, "default": 1,
+          "labels": { "es": "¿Cuántas aplicaciones web entran en el alcance?", "en": "How many web applications are in scope?" } },
+        { "id": "roles", "type": "number", "min": 1, "max": 20, "default": 2,
+          "labels": { "es": "¿Cuántos roles de usuario distintos hay que probar?", "en": "How many distinct user roles must be tested?" },
+          "help": { "es": "Anónimo, usuario, administrador… Cada rol multiplica las pruebas de control de acceso.", "en": "Anonymous, user, admin… Each role multiplies access control testing." } },
+        { "id": "auth", "type": "select", "default": "password",
+          "labels": { "es": "¿Cómo se autentican los usuarios?", "en": "How do users authenticate?" },
+          "options": [
+            { "value": "none", "labels": { "es": "No hay autenticación", "en": "No authentication" } },
+            { "value": "password", "labels": { "es": "Usuario y contraseña", "en": "Username and password" } },
+            { "value": "mfa", "labels": { "es": "Con segundo factor (MFA)", "en": "With second factor (MFA)" } },
+            { "value": "sso", "labels": { "es": "SSO corporativo (SAML/OIDC)", "en": "Corporate SSO (SAML/OIDC)" } }
+          ] },
+        { "id": "endpoints", "type": "select", "default": "lt50",
+          "labels": { "es": "Volumen aproximado de funcionalidad", "en": "Approximate functionality volume" },
+          "help": { "es": "Pantallas o endpoints distintos, contando solo lo que entra en el alcance.", "en": "Distinct screens or endpoints, counting only what is in scope." },
+          "options": [
+            { "value": "lt50", "labels": { "es": "Menos de 50", "en": "Fewer than 50" } },
+            { "value": "50_150", "labels": { "es": "Entre 50 y 150", "en": "Between 50 and 150" } },
+            { "value": "150_400", "labels": { "es": "Entre 150 y 400", "en": "Between 150 and 400" } },
+            { "value": "gt400", "labels": { "es": "Más de 400", "en": "More than 400" } }
+          ] },
+        { "id": "api_asociada", "type": "boolean", "default": false,
+          "labels": { "es": "¿La aplicación tiene una API propia que también debe evaluarse?", "en": "Does the application have its own API that must also be assessed?" } },
+        { "id": "waf", "type": "boolean", "default": false,
+          "labels": { "es": "¿Hay un WAF u otra protección delante?", "en": "Is there a WAF or similar protection in front?" },
+          "help": { "es": "Sin lista blanca para el equipo de pruebas, el WAF añade trabajo de evasión.", "en": "Without an allowlist for the testing team, a WAF adds evasion work." } },
+        { "id": "environment", "type": "select", "default": "staging",
+          "labels": { "es": "¿En qué entorno se ejecutan las pruebas?", "en": "Which environment will be tested?" },
+          "options": [
+            { "value": "staging", "labels": { "es": "Staging o preproducción", "en": "Staging or pre-production" } },
+            { "value": "production", "labels": { "es": "Producción", "en": "Production" } },
+            { "value": "both", "labels": { "es": "Ambos", "en": "Both" } }
+          ] },
+        { "id": "stack", "type": "multiselect", "default": [],
+          "labels": { "es": "Tecnologías, si las conoces", "en": "Technologies, if you know them" },
+          "help": { "es": "Opcional. Solo se usa para dimensionar; no afecta al alcance declarado.", "en": "Optional. Used only for sizing; it does not change the declared scope." },
+          "options": [
+            { "value": "spa", "labels": { "es": "SPA (React, Vue, Angular)", "en": "SPA (React, Vue, Angular)" } },
+            { "value": "server_rendered", "labels": { "es": "Renderizado en servidor", "en": "Server rendered" } },
+            { "value": "cms", "labels": { "es": "CMS (WordPress, Drupal…)", "en": "CMS (WordPress, Drupal…)" } },
+            { "value": "legacy", "labels": { "es": "Aplicación heredada", "en": "Legacy application" } },
+            { "value": "microservices", "labels": { "es": "Microservicios", "en": "Microservices" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "api",
+      "icon": "Braces",
+      "labels": { "es": "Pentesting de API", "en": "API Pentesting" },
+      "summary": { "es": "REST, GraphQL o gRPC evaluadas por rol.", "en": "REST, GraphQL or gRPC assessed per role." },
+      "questions": [
+        { "id": "endpoints", "type": "number", "min": 1, "max": 1000, "default": 30,
+          "labels": { "es": "¿Cuántos endpoints u operaciones tiene la API?", "en": "How many endpoints or operations does the API have?" } },
+        { "id": "api_type", "type": "multiselect", "default": ["rest"], "minSelected": 1,
+          "labels": { "es": "¿De qué tipo es la API?", "en": "What type of API is it?" },
+          "options": [
+            { "value": "rest", "labels": { "es": "REST", "en": "REST" } },
+            { "value": "graphql", "labels": { "es": "GraphQL", "en": "GraphQL" } },
+            { "value": "grpc", "labels": { "es": "gRPC", "en": "gRPC" } },
+            { "value": "soap", "labels": { "es": "SOAP", "en": "SOAP" } }
+          ] },
+        { "id": "auth", "type": "select", "default": "token",
+          "labels": { "es": "¿Cómo se autentica la API?", "en": "How does the API authenticate?" },
+          "options": [
+            { "value": "none", "labels": { "es": "Sin autenticación", "en": "No authentication" } },
+            { "value": "apikey", "labels": { "es": "API key", "en": "API key" } },
+            { "value": "token", "labels": { "es": "Tokens (JWT, OAuth)", "en": "Tokens (JWT, OAuth)" } },
+            { "value": "mtls", "labels": { "es": "mTLS o certificados", "en": "mTLS or certificates" } }
+          ] },
+        { "id": "roles", "type": "number", "min": 1, "max": 20, "default": 2,
+          "labels": { "es": "¿Cuántos roles distintos consumen la API?", "en": "How many distinct roles consume the API?" } },
+        { "id": "openapi", "type": "boolean", "default": true,
+          "labels": { "es": "¿Existe documentación OpenAPI, Swagger o del esquema?", "en": "Is there OpenAPI, Swagger or schema documentation?" },
+          "help": { "es": "Con documentación se cubre más superficie en el mismo tiempo.", "en": "With documentation, more surface is covered in the same time." } },
+        { "id": "integrations", "type": "select", "default": "few",
+          "labels": { "es": "¿Cuántas integraciones externas tiene?", "en": "How many external integrations does it have?" },
+          "options": [
+            { "value": "none", "labels": { "es": "Ninguna", "en": "None" } },
+            { "value": "few", "labels": { "es": "Entre 1 y 3", "en": "Between 1 and 3" } },
+            { "value": "many", "labels": { "es": "Más de 3", "en": "More than 3" } }
+          ] },
+        { "id": "environment", "type": "select", "default": "staging",
+          "labels": { "es": "¿En qué entorno se ejecutan las pruebas?", "en": "Which environment will be tested?" },
+          "options": [
+            { "value": "staging", "labels": { "es": "Staging o preproducción", "en": "Staging or pre-production" } },
+            { "value": "production", "labels": { "es": "Producción", "en": "Production" } },
+            { "value": "both", "labels": { "es": "Ambos", "en": "Both" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "infra_externa",
+      "icon": "Globe2",
+      "labels": { "es": "Infraestructura Externa", "en": "External Infrastructure" },
+      "summary": { "es": "Perímetro expuesto a Internet.", "en": "Internet-facing perimeter." },
+      "questions": [
+        { "id": "public_ips", "type": "number", "min": 0, "max": 5000, "default": 8,
+          "labels": { "es": "¿Cuántas direcciones IP públicas entran en el alcance?", "en": "How many public IP addresses are in scope?" } },
+        { "id": "domains", "type": "number", "min": 0, "max": 500, "default": 3,
+          "labels": { "es": "¿Cuántos dominios y subdominios?", "en": "How many domains and subdomains?" } },
+        { "id": "exposed_services", "type": "select", "default": "lt20",
+          "labels": { "es": "Servicios expuestos aproximados", "en": "Approximate exposed services" },
+          "options": [
+            { "value": "lt20", "labels": { "es": "Menos de 20", "en": "Fewer than 20" } },
+            { "value": "20_100", "labels": { "es": "Entre 20 y 100", "en": "Between 20 and 100" } },
+            { "value": "gt100", "labels": { "es": "Más de 100", "en": "More than 100" } }
+          ] },
+        { "id": "vpn", "type": "boolean", "default": false,
+          "labels": { "es": "¿Hay accesos VPN o portales de acceso remoto publicados?", "en": "Are there published VPN or remote access portals?" } },
+        { "id": "hosting", "type": "select", "default": "cloud",
+          "labels": { "es": "¿Dónde está alojado?", "en": "Where is it hosted?" },
+          "options": [
+            { "value": "cloud", "labels": { "es": "Cloud", "en": "Cloud" } },
+            { "value": "onprem", "labels": { "es": "On-premise", "en": "On-premise" } },
+            { "value": "hybrid", "labels": { "es": "Híbrido", "en": "Hybrid" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "infra_interna",
+      "icon": "Network",
+      "labels": { "es": "Infraestructura Interna", "en": "Internal Infrastructure" },
+      "summary": { "es": "Red interna, segmentación y movimiento lateral.", "en": "Internal network, segmentation and lateral movement." },
+      "questions": [
+        { "id": "hosts", "type": "number", "min": 1, "max": 20000, "default": 100,
+          "labels": { "es": "¿Cuántos equipos hay aproximadamente en la red?", "en": "Approximately how many hosts are on the network?" } },
+        { "id": "segments", "type": "number", "min": 1, "max": 200, "default": 3,
+          "labels": { "es": "¿Cuántos segmentos o VLAN?", "en": "How many segments or VLANs?" } },
+        { "id": "servers", "type": "number", "min": 0, "max": 2000, "default": 15,
+          "labels": { "es": "¿Cuántos servidores?", "en": "How many servers?" } },
+        { "id": "access", "type": "select", "default": "vpn",
+          "labels": { "es": "¿Cómo se facilita el acceso inicial?", "en": "How is initial access provided?" },
+          "options": [
+            { "value": "vpn", "labels": { "es": "VPN al segmento de pruebas", "en": "VPN to the testing segment" } },
+            { "value": "device", "labels": { "es": "Equipo o dispositivo en la red", "en": "Host or device on the network" } },
+            { "value": "onsite", "labels": { "es": "Presencial en las instalaciones", "en": "On site" } }
+          ] },
+        { "id": "sites", "type": "number", "min": 1, "max": 100, "default": 1,
+          "labels": { "es": "¿Cuántas sedes entran en el alcance?", "en": "How many sites are in scope?" } }
+      ]
+    },
+
+    {
+      "id": "active_directory",
+      "icon": "Users",
+      "labels": { "es": "Active Directory", "en": "Active Directory" },
+      "summary": { "es": "Rutas de ataque al dominio.", "en": "Domain attack paths." },
+      "questions": [
+        { "id": "users", "type": "number", "min": 1, "max": 100000, "default": 300,
+          "labels": { "es": "¿Cuántas cuentas de usuario tiene el dominio?", "en": "How many user accounts does the domain have?" } },
+        { "id": "endpoints", "type": "number", "min": 1, "max": 50000, "default": 200,
+          "labels": { "es": "¿Cuántas estaciones de trabajo?", "en": "How many workstations?" } },
+        { "id": "servers", "type": "number", "min": 1, "max": 5000, "default": 20,
+          "labels": { "es": "¿Cuántos servidores unidos al dominio?", "en": "How many domain-joined servers?" } },
+        { "id": "domains", "type": "number", "min": 1, "max": 50, "default": 1,
+          "labels": { "es": "¿Cuántos dominios o bosques?", "en": "How many domains or forests?" } },
+        { "id": "trusts", "type": "boolean", "default": false,
+          "labels": { "es": "¿Existen relaciones de confianza entre dominios?", "en": "Are there trust relationships between domains?" } },
+        { "id": "sites", "type": "number", "min": 1, "max": 100, "default": 1,
+          "labels": { "es": "¿Cuántas sedes?", "en": "How many sites?" } },
+        { "id": "access", "type": "select", "default": "vpn",
+          "labels": { "es": "¿Cómo se facilita el acceso?", "en": "How is access provided?" },
+          "options": [
+            { "value": "vpn", "labels": { "es": "VPN con cuenta de dominio sin privilegios", "en": "VPN with an unprivileged domain account" } },
+            { "value": "device", "labels": { "es": "Equipo unido al dominio", "en": "Domain-joined host" } },
+            { "value": "onsite", "labels": { "es": "Presencial", "en": "On site" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "mobile",
+      "icon": "Smartphone",
+      "labels": { "es": "Mobile", "en": "Mobile" },
+      "summary": { "es": "Aplicaciones Android e iOS.", "en": "Android and iOS applications." },
+      "questions": [
+        { "id": "platforms", "type": "multiselect", "default": ["android"], "minSelected": 1,
+          "labels": { "es": "¿Qué plataformas?", "en": "Which platforms?" },
+          "options": [
+            { "value": "android", "labels": { "es": "Android", "en": "Android" } },
+            { "value": "ios", "labels": { "es": "iOS", "en": "iOS" } }
+          ] },
+        { "id": "backend", "type": "boolean", "default": true,
+          "labels": { "es": "¿Se incluye la API o backend que usa la aplicación?", "en": "Is the API or backend used by the app included?" } },
+        { "id": "auth", "type": "select", "default": "password",
+          "labels": { "es": "¿Cómo se autentica la aplicación?", "en": "How does the app authenticate?" },
+          "options": [
+            { "value": "none", "labels": { "es": "Sin autenticación", "en": "No authentication" } },
+            { "value": "password", "labels": { "es": "Usuario y contraseña", "en": "Username and password" } },
+            { "value": "mfa", "labels": { "es": "Con segundo factor", "en": "With second factor" } },
+            { "value": "biometric", "labels": { "es": "Biometría o certificado en dispositivo", "en": "Biometrics or on-device certificate" } }
+          ] },
+        { "id": "builds", "type": "select", "default": "package",
+          "labels": { "es": "¿Qué se puede entregar para las pruebas?", "en": "What can be provided for testing?" },
+          "options": [
+            { "value": "package", "labels": { "es": "Paquete APK o IPA", "en": "APK or IPA package" } },
+            { "value": "store", "labels": { "es": "Solo la versión publicada en la tienda", "en": "Only the published store version" } },
+            { "value": "source", "labels": { "es": "Paquete y código fuente", "en": "Package and source code" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "cloud",
+      "icon": "Cloud",
+      "labels": { "es": "Cloud", "en": "Cloud" },
+      "summary": { "es": "Configuración e identidades en AWS, Azure o GCP.", "en": "Configuration and identities on AWS, Azure or GCP." },
+      "questions": [
+        { "id": "providers", "type": "multiselect", "default": ["aws"], "minSelected": 1,
+          "labels": { "es": "¿Qué proveedores?", "en": "Which providers?" },
+          "options": [
+            { "value": "aws", "labels": { "es": "AWS", "en": "AWS" } },
+            { "value": "azure", "labels": { "es": "Azure", "en": "Azure" } },
+            { "value": "gcp", "labels": { "es": "Google Cloud", "en": "Google Cloud" } }
+          ] },
+        { "id": "accounts", "type": "number", "min": 1, "max": 500, "default": 2,
+          "labels": { "es": "¿Cuántas cuentas, suscripciones o proyectos?", "en": "How many accounts, subscriptions or projects?" } },
+        { "id": "services", "type": "select", "default": "lt15",
+          "labels": { "es": "¿Cuántos servicios distintos se utilizan?", "en": "How many distinct services are in use?" },
+          "options": [
+            { "value": "lt15", "labels": { "es": "Menos de 15", "en": "Fewer than 15" } },
+            { "value": "15_40", "labels": { "es": "Entre 15 y 40", "en": "Between 15 and 40" } },
+            { "value": "gt40", "labels": { "es": "Más de 40", "en": "More than 40" } }
+          ] },
+        { "id": "iam_review", "type": "boolean", "default": true,
+          "labels": { "es": "¿Se incluye el análisis de identidades y permisos (IAM)?", "en": "Is the identity and permission (IAM) analysis included?" } },
+        { "id": "access", "type": "select", "default": "readonly",
+          "labels": { "es": "¿Qué acceso se puede entregar?", "en": "What access can be provided?" },
+          "options": [
+            { "value": "readonly", "labels": { "es": "Rol de solo lectura para auditoría", "en": "Read-only auditing role" } },
+            { "value": "limited", "labels": { "es": "Acceso limitado a algunas cuentas", "en": "Limited access to some accounts" } },
+            { "value": "none", "labels": { "es": "Sin acceso: solo desde fuera", "en": "No access: external only" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "red_team",
+      "icon": "Crosshair",
+      "labels": { "es": "Red Team", "en": "Red Team" },
+      "summary": { "es": "Simulación adversaria dirigida a objetivos.", "en": "Objective-driven adversary simulation." },
+      "questions": [
+        { "id": "duration_weeks", "type": "number", "min": 2, "max": 24, "default": 4,
+          "labels": { "es": "¿Cuántas semanas debería durar el ejercicio?", "en": "How many weeks should the exercise last?" } },
+        { "id": "objectives", "type": "number", "min": 1, "max": 10, "default": 2,
+          "labels": { "es": "¿Cuántos objetivos concretos se persiguen?", "en": "How many concrete objectives are pursued?" },
+          "help": { "es": "Por ejemplo: llegar a la base de datos de clientes, o a la consola de pagos.", "en": "For example: reaching the customer database, or the payments console." } },
+        { "id": "sites", "type": "number", "min": 1, "max": 50, "default": 1,
+          "labels": { "es": "¿Cuántas sedes entran en el alcance?", "en": "How many sites are in scope?" } },
+        { "id": "components", "type": "multiselect", "default": ["osint", "phishing"],
+          "labels": { "es": "¿Qué componentes se incluyen?", "en": "Which components are included?" },
+          "options": [
+            { "value": "osint", "labels": { "es": "OSINT", "en": "OSINT" } },
+            { "value": "phishing", "labels": { "es": "Phishing dirigido", "en": "Targeted phishing" } },
+            { "value": "physical", "labels": { "es": "Acceso físico", "en": "Physical access" } },
+            { "value": "evasion", "labels": { "es": "Evasión de defensas", "en": "Defense evasion" } },
+            { "value": "lateral", "labels": { "es": "Movimiento lateral", "en": "Lateral movement" } },
+            { "value": "persistence", "labels": { "es": "Persistencia", "en": "Persistence" } },
+            { "value": "exfiltration", "labels": { "es": "Exfiltración controlada", "en": "Controlled exfiltration" } }
+          ] }
+      ]
+    },
+
+    {
+      "id": "retesting",
+      "icon": "RefreshCw",
+      "labels": { "es": "Retesting", "en": "Retesting" },
+      "summary": { "es": "Verificación de correcciones de una evaluación previa.", "en": "Verification of fixes from a previous assessment." },
+      "questions": [
+        { "id": "findings", "type": "number", "min": 1, "max": 300, "default": 10,
+          "labels": { "es": "¿Cuántos hallazgos hay que verificar?", "en": "How many findings must be verified?" } },
+        { "id": "severities", "type": "multiselect", "default": ["high", "medium"],
+          "labels": { "es": "¿Qué severidades incluyen?", "en": "Which severities do they include?" },
+          "options": [
+            { "value": "critical", "labels": { "es": "Críticas", "en": "Critical" } },
+            { "value": "high", "labels": { "es": "Altas", "en": "High" } },
+            { "value": "medium", "labels": { "es": "Medias", "en": "Medium" } },
+            { "value": "low", "labels": { "es": "Bajas", "en": "Low" } }
+          ] },
+        { "id": "original_scope", "type": "select", "default": "web",
+          "labels": { "es": "¿De qué tipo era la evaluación original?", "en": "What type was the original assessment?" },
+          "options": [
+            { "value": "web", "labels": { "es": "Web", "en": "Web" } },
+            { "value": "api", "labels": { "es": "API", "en": "API" } },
+            { "value": "infra", "labels": { "es": "Infraestructura", "en": "Infrastructure" } },
+            { "value": "ad", "labels": { "es": "Active Directory", "en": "Active Directory" } },
+            { "value": "mobile", "labels": { "es": "Mobile", "en": "Mobile" } },
+            { "value": "cloud", "labels": { "es": "Cloud", "en": "Cloud" } },
+            { "value": "other", "labels": { "es": "Otra", "en": "Other" } }
+          ] },
+        { "id": "previous_report", "type": "boolean", "default": true,
+          "labels": { "es": "¿Está disponible el informe anterior?", "en": "Is the previous report available?" },
+          "help": { "es": "Sin el informe original hay que reconstruir los pasos de reproducción.", "en": "Without the original report, reproduction steps must be reconstructed." } }
+      ]
+    }
+  ],
+
+  "context": {
+    "questions": [
+      { "id": "retest", "type": "boolean", "default": true,
+        "labels": { "es": "¿Quieres incluir retesting de las correcciones?", "en": "Include retesting of the fixes?" },
+        "help": { "es": "Verificación posterior de que los hallazgos quedan cerrados.", "en": "Later verification that findings are effectively closed." } },
+      { "id": "executive_session", "type": "boolean", "default": true,
+        "labels": { "es": "¿Quieres una reunión de cierre con dirección?", "en": "Do you want a closing meeting with management?" } },
+      { "id": "report_language", "type": "select", "default": "es",
+        "labels": { "es": "Idioma del informe", "en": "Report language" },
+        "options": [
+          { "value": "es", "labels": { "es": "Español", "en": "Spanish" } },
+          { "value": "en", "labels": { "es": "Inglés", "en": "English" } },
+          { "value": "both", "labels": { "es": "Ambos", "en": "Both" } }
+        ] },
+      { "id": "urgency", "type": "select", "default": "normal",
+        "labels": { "es": "¿Con qué urgencia lo necesitas?", "en": "How urgently do you need it?" },
+        "options": [
+          { "value": "normal", "labels": { "es": "Planificado, sin prisa concreta", "en": "Planned, no particular rush" } },
+          { "value": "soon", "labels": { "es": "En las próximas semanas", "en": "In the coming weeks" } },
+          { "value": "urgent", "labels": { "es": "Es urgente", "en": "It is urgent" } }
+        ] },
+      { "id": "out_of_hours", "type": "boolean", "default": false,
+        "labels": { "es": "¿Las pruebas deben ejecutarse fuera del horario laboral?", "en": "Must testing run outside business hours?" } }
+    ]
+  },
+
+  "contact": {
+    "fields": [
+      { "id": "company", "type": "text", "required": true, "maxLength": 100,
+        "labels": { "es": "Empresa", "en": "Company" } },
+      { "id": "name", "type": "text", "required": true, "maxLength": 100,
+        "labels": { "es": "Nombre y apellidos", "en": "Full name" } },
+      { "id": "email", "type": "email", "required": true, "maxLength": 254,
+        "labels": { "es": "Email corporativo", "en": "Work email" } },
+      { "id": "phone", "type": "tel", "required": false, "maxLength": 30,
+        "labels": { "es": "Teléfono (opcional)", "en": "Phone (optional)" } },
+      { "id": "notes", "type": "textarea", "required": false, "maxLength": 1000,
+        "labels": { "es": "¿Algo más que debamos saber? (opcional)", "en": "Anything else we should know? (optional)" },
+        "help": { "es": "No incluyas credenciales, datos personales de terceros ni información clasificada.", "en": "Do not include credentials, third-party personal data or classified information." } }
+    ]
+  }
+}

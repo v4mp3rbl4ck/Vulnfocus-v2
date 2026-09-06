@@ -1254,3 +1254,1480 @@
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   REESTRUCTURACIÓN COMERCIAL
+   Estilos de los componentes nuevos. Se añaden al final y reutilizan los
+   tokens ya existentes (--brand-primary, --border-subtle, …) para no cambiar
+   la identidad visual del sitio.
+   ========================================================================== */
+
+:root {
+  --brand-danger: #FF4458;
+  --brand-success: #2FD48A;
+  --surface-raised: rgba(255, 255, 255, 0.035);
+  --surface-raised-strong: rgba(255, 255, 255, 0.06);
+  --focus-ring: #4DA6FF;
+  --content-max: 1400px;
+}
+
+/* --- Accesibilidad -------------------------------------------------------- */
+
+/* Un anillo de foco visible y uniforme. Antes solo algunos controles lo tenían,
+   así que navegar con teclado era adivinar dónde estabas. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  background: var(--brand-primary);
+  color: #000;
+  padding: 12px 20px;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* prefers-reduced-motion: el hook useReveal ya evita la animación de entrada;
+   esto cubre el resto de transiciones declaradas en la hoja. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Tipografía de sección ------------------------------------------------ */
+
+.section-subtitle {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.section-note {
+  margin-top: 40px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 820px;
+}
+
+.page-header {
+  padding: 140px 7.6923% 0;
+}
+
+.page-header .content-wrapper {
+  padding: 0;
+}
+
+.page-title {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.page-subtitle {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 760px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 24px;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--brand-primary);
+}
+
+.inline-link {
+  color: var(--brand-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- Hero ----------------------------------------------------------------- */
+
+.hero-eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.hero-badges {
+  list-style: none;
+  padding: 0;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+}
+
+/* --- Propuestas de valor -------------------------------------------------- */
+
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.value-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  padding: 28px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s ease;
+}
+
+.value-card.card-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.value-card:hover {
+  border-color: var(--brand-primary);
+}
+
+.value-icon {
+  color: var(--brand-primary);
+  margin-bottom: 16px;
+}
+
+.value-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.value-description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+/* --- Tarjetas de servicio ------------------------------------------------- */
+
+.service-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.service-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* La tarjeta entera es clicable, pero el enlace real sigue siendo el título:
+   así el lector de pantalla anuncia el destino con un texto útil. */
+.service-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.service-frameworks {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+.framework-chip {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 10px;
+}
+
+.service-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--brand-primary);
+}
+
+/* --- Escaneo vs pentesting ------------------------------------------------ */
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.compare-card {
+  border: 1px solid var(--border-subtle);
+  padding: 32px;
+  background: var(--surface-raised);
+}
+
+.compare-card-scan {
+  border-left: 3px solid var(--text-muted);
+}
+
+.compare-card-pentest {
+  border-left: 3px solid var(--brand-primary);
+}
+
+.compare-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.compare-card-scan .compare-title svg {
+  color: var(--text-muted);
+}
+
+.compare-card-pentest .compare-title svg {
+  color: var(--brand-primary);
+}
+
+.compare-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.compare-list li {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  padding-left: 18px;
+  position: relative;
+}
+
+.compare-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  background: var(--border-medium);
+}
+
+.compare-card-pentest .compare-list li::before {
+  background: var(--brand-primary);
+}
+
+.flow-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 28px;
+}
+
+.flow-chain {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.flow-node {
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  border-top: 2px solid var(--brand-primary);
+  padding: 20px;
+  background: var(--surface-raised);
+}
+
+.flow-node-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.flow-index {
+  font-size: 12px;
+  color: var(--brand-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-step {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.flow-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* La flecha entre pasos solo tiene sentido cuando la cadena se apila en una
+   columna; en rejilla desordena la lectura. */
+.flow-arrow {
+  display: none;
+  color: var(--border-medium);
+  margin: 12px auto 0;
+}
+
+/* --- Entregables ---------------------------------------------------------- */
+
+.sample-report {
+  margin-top: 56px;
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--brand-primary);
+  padding: 32px;
+  background: var(--surface-raised);
+  max-width: 760px;
+}
+
+.sample-report-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.sample-report-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.sample-report-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* --- Banda de conversión -------------------------------------------------- */
+
+.cta-band {
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, rgba(0, 128, 255, 0.07), transparent);
+  padding: 64px 7.6923%;
+}
+
+.cta-band-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+.cta-band-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+
+.cta-band-text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 620px;
+}
+
+.cta-band-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* --- Página de servicio --------------------------------------------------- */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 56px;
+  align-items: start;
+}
+
+.detail-main > section + section {
+  margin-top: 48px;
+}
+
+.detail-heading {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+}
+
+.detail-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.check-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.check-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.check-list svg {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.bullet-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.bullet-list li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.bullet-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  background: var(--brand-primary);
+}
+
+.numbered-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.numbered-list li {
+  display: flex;
+  gap: 16px;
+}
+
+.numbered-index {
+  font-size: 13px;
+  color: var(--brand-primary);
+  font-variant-numeric: tabular-nums;
+  padding-top: 3px;
+}
+
+.numbered-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.numbered-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.detail-aside {
+  position: sticky;
+  top: 104px;
+  display: grid;
+  gap: 20px;
+}
+
+.aside-card {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  padding: 24px;
+}
+
+.aside-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.aside-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.aside-note {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* --- Formularios ---------------------------------------------------------- */
+
+/* El honeypot se oculta desde CSS y no con un atributo style inline: así el
+   sitio deja de depender de style-src 'unsafe-inline' por este motivo. */
+.honeypot-field {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.form-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.contact-quote-hint {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.contact-channels {
+  list-style: none;
+  padding: 0;
+}
+
+.channel-item {
+  width: 100%;
+}
+
+/* --- 404 ------------------------------------------------------------------ */
+
+.not-found {
+  padding-top: 180px;
+  text-align: center;
+}
+
+.not-found .hero-cta-group {
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.not-found-code {
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+/* --- Pie ------------------------------------------------------------------ */
+
+.footer-columns {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.footer-column-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.footer-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.footer-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--brand-primary);
+}
+
+.footer-claim {
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  margin: 12px 0;
+}
+
+.nav-link-active {
+  color: var(--text-primary);
+}
+
+/* --- Adaptación a pantallas pequeñas -------------------------------------- */
+
+@media (max-width: 1024px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .detail-aside {
+    position: static;
+  }
+
+  .footer-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding-top: 116px;
+  }
+
+  .cta-band-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cta-band-actions {
+    width: 100%;
+  }
+
+  .cta-band-actions > * {
+    flex: 1 1 200px;
+  }
+
+  .flow-chain {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-arrow {
+    display: block;
+  }
+
+  .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .not-found {
+    padding-top: 140px;
+  }
+
+  .not-found-code {
+    font-size: 56px;
+  }
+}
+
+/* ==========================================================================
+   COTIZADOR
+   ========================================================================== */
+
+.quote-page-header {
+  padding-bottom: 0;
+}
+
+.quote-section {
+  padding-top: 40px;
+}
+
+.quote-wizard {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  padding: 40px;
+}
+
+/* --- Pasos y progreso ----------------------------------------------------- */
+
+.quote-steps {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-bottom: 20px;
+}
+
+.quote-step-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.quote-step-index {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.quote-step-chip.is-current {
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.quote-step-chip.is-done {
+  color: var(--text-secondary);
+}
+
+.quote-progress {
+  height: 4px;
+  background: var(--border-subtle);
+  margin-bottom: 36px;
+  overflow: hidden;
+}
+
+.quote-progress-bar {
+  height: 100%;
+  background: var(--brand-primary);
+  transition: width 0.35s ease;
+}
+
+.quote-step-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.quote-step-title:focus {
+  outline: none;
+}
+
+.quote-step-help {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.quote-step-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+/* --- Selección de servicio ------------------------------------------------ */
+
+.quote-service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.quote-service-card {
+  position: relative;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 20px;
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.quote-service-card:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+}
+
+.quote-service-card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.quote-service-selected {
+  border-color: var(--brand-primary);
+  background: rgba(0, 128, 255, 0.08);
+}
+
+.quote-service-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.quote-service-summary {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.quote-service-check {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--brand-primary);
+}
+
+/* --- Campos --------------------------------------------------------------- */
+
+.quote-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 32px;
+}
+
+.quote-legend {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.quote-field {
+  margin-bottom: 26px;
+}
+
+.quote-field-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.quote-field-help {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.quote-number {
+  max-width: 200px;
+}
+
+.quote-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.quote-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-subtle);
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.quote-option:hover {
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+/* El input nativo sigue en el DOM (accesible y navegable con teclado) pero se
+   oculta visualmente; el foco se muestra sobre la etiqueta. */
+.quote-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.quote-option:has(input:focus-visible) {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.quote-option-selected {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: rgba(0, 128, 255, 0.08);
+}
+
+.quote-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.quote-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+/* --- Resumen -------------------------------------------------------------- */
+
+.quote-summary {
+  border: 1px solid var(--border-subtle);
+  padding: 24px;
+  margin: 32px 0;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.quote-summary-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.quote-summary-list > div + div {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.quote-summary-list dt {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.quote-summary-list dd {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.quote-summary-answers {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.quote-summary-answers li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.quote-summary-key {
+  color: var(--text-secondary);
+}
+
+.quote-summary-value {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-align: right;
+  flex-shrink: 0;
+  max-width: 45%;
+}
+
+.quote-privacy {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  border-left: 2px solid var(--border-medium);
+  padding-left: 14px;
+  margin: 20px 0;
+}
+
+.quote-nav {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--brand-primary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.quote-restart {
+  margin-top: 28px;
+  text-align: center;
+}
+
+/* --- Estimación ----------------------------------------------------------- */
+
+.estimate {
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--brand-primary);
+  background: var(--surface-raised);
+  padding: 40px;
+}
+
+.estimate-page {
+  padding-top: 140px;
+}
+
+.estimate-header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.estimate-badge {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  margin-bottom: 8px;
+}
+
+.estimate-number {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.estimate-date {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.estimate-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.estimate-fact dt {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.estimate-fact dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.complexity-pill {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border: 1px solid currentColor;
+}
+
+.complexity-low { color: var(--brand-success); }
+.complexity-medium { color: var(--brand-primary); }
+.complexity-high { color: var(--brand-danger); }
+
+.estimate-section {
+  margin-bottom: 32px;
+}
+
+.estimate-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.estimate-price {
+  border: 1px solid var(--border-subtle);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.estimate-amount {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.estimate-currency {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.estimate-tax,
+.estimate-validity {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.estimate-price-pending {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.estimate-disclaimer {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--brand-primary);
+  padding-left: 14px;
+}
+
+.estimate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.estimate-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+.estimate-share {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.estimate-share-help {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.estimate-share-url {
+  display: block;
+  font-size: 13px;
+  color: var(--brand-primary);
+  background: rgba(0, 128, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  padding: 12px 14px;
+  word-break: break-all;
+}
+
+.estimate-loading,
+.estimate-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.estimate-error svg {
+  color: var(--brand-danger);
+}
+
+@media (max-width: 768px) {
+  .quote-wizard,
+  .estimate {
+    padding: 24px 20px;
+  }
+
+  .quote-nav {
+    flex-direction: column-reverse;
+  }
+
+  .quote-nav > * {
+    width: 100%;
+  }
+
+  .quote-summary-answers li {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .quote-summary-value {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .estimate-number {
+    font-size: 26px;
+  }
+
+  .estimate-amount {
+    font-size: 24px;
+  }
+
+  .estimate-page {
+    padding-top: 110px;
+  }
+}
+
+/* ==========================================================================
+   IMPRESIÓN / PDF
+   La estimación se descarga imprimiendo esta misma vista a PDF desde el
+   navegador. La decisión de no generar el PDF en el Worker está razonada en
+   docs/QUOTING_ENGINE.md: ninguna librería de PDF compatible con Workers cabe
+   sin comprometer el bundle, y el diálogo del navegador da tipografía correcta
+   con acentos, texto seleccionable y coste cero.
+   ========================================================================== */
+
+@media print {
+  /* Fondo blanco y texto negro: imprimir el tema oscuro gasta tinta y sale mal. */
+  :root {
+    --text-primary: #000;
+    --text-secondary: #333;
+    --text-muted: #555;
+    --border-subtle: #ccc;
+    --border-medium: #999;
+    --surface-raised: transparent;
+  }
+
+  html,
+  body,
+  .App,
+  .app-wrapper {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Fuera todo lo que no es el documento. */
+  .dark-header,
+  .footer,
+  .cta-band,
+  .skip-link,
+  .no-print,
+  .quote-steps,
+  .quote-progress,
+  .quote-nav,
+  .estimate-share {
+    display: none !important;
+  }
+
+  .section-container,
+  .estimate-page,
+  .quote-section {
+    padding: 0 !important;
+  }
+
+  .content-wrapper-narrow,
+  .content-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .estimate {
+    border: none;
+    padding: 0;
+  }
+
+  .estimate-header {
+    border-bottom: 2px solid #000;
+  }
+
+  .estimate-badge,
+  .estimate-section-title {
+    color: #000 !important;
+  }
+
+  .complexity-pill {
+    border-color: #000;
+    color: #000 !important;
+  }
+
+  .check-list svg {
+    color: #000 !important;
+  }
+
+  /* Cada bloque de la estimación entero en la misma página. */
+  .estimate-facts,
+  .estimate-section,
+  .estimate-price,
+  .print-block {
+    break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+
+  @page {
+    margin: 18mm 16mm;
+  }
+}
+
+/* --- Documento de la estimación ------------------------------------------ */
+
+.estimate-document {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.estimate-text {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.estimate-scope-block + .estimate-scope-block {
+  margin-top: 20px;
+}
+
+.estimate-scope-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.estimate-scope-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.estimate-scope-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  border-bottom: 1px dotted var(--border-subtle);
+  padding-bottom: 5px;
+}
+
+.estimate-scope-list strong {
+  color: var(--text-primary);
+  text-align: right;
+  flex-shrink: 0;
+  max-width: 45%;
+}
+
+/* Cabecera y pie que solo existen en el documento impreso. */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: block;
+  }
+
+  .estimate-print-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #000;
+  }
+
+  .estimate-print-brand {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .estimate-print-doctype {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #444;
+  }
+
+  .estimate-print-footer {
+    margin-top: 28px;
+    padding-top: 10px;
+    border-top: 1px solid #000;
+    font-size: 11px;
+    color: #444;
+    text-align: center;
+  }
+
+  .estimate-document {
+    border-top: none;
+  }
+
+  .estimate-scope-list li {
+    border-bottom: 1px dotted #bbb;
+  }
+}
+
+@media (max-width: 768px) {
+  .estimate-scope-list li {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .estimate-scope-list strong {
+    text-align: left;
+    max-width: 100%;
+  }
+}

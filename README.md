@@ -1,7 +1,8 @@
 # VulnFocus — React + Cloudflare Workers + D1
 
-Sitio de VulnFocus SPA. Frontend React servido como Static Assets de Cloudflare y
-una API serverless en un Worker. Sin servidores que administrar. .
+Plataforma comercial de seguridad ofensiva. Frontend React servido como Static
+Assets de Cloudflare y una API serverless en un Worker. Sin servidores que
+administrar.
 
 ```
 Internet
@@ -9,14 +10,33 @@ Internet
    ▼
 Cloudflare (DNS · TLS · CDN · WAF · Turnstile)
    │
-   ├── /*        → Static Assets  (React compilado, no facturable)
+   ├── /*        → Static Assets  (un HTML por ruta + 404 real, no facturable)
    │
    └── /api/*    → Worker
-                     ├── POST /api/contact ──┬── Turnstile Siteverify
-                     │                       ├── D1 (contact_submissions)
-                     │                       └── Telegram Bot API
+                     ├── POST /api/contact ─────┬── Turnstile Siteverify
+                     │                          ├── D1 (contact_submissions)
+                     │                          └── NotificationService
+                     ├── POST /api/quotes ──────┬── Turnstile Siteverify
+                     │                          ├── motor de cotización
+                     │                          ├── D1 (quotes)
+                     │                          └── NotificationService
+                     ├── GET  /api/quotes/:public_id
                      └── GET  /api/health
 ```
+
+## Documentación
+
+| Documento | Contenido |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Estructura, fuentes de verdad, routing |
+| [docs/QUOTING_ENGINE.md](docs/QUOTING_ENGINE.md) | Motor de esfuerzo y precios, y cómo cambiar tarifas |
+| [docs/D1_SCHEMA.md](docs/D1_SCHEMA.md) | Tablas, índices y consultas habituales |
+| [docs/CLOUDFLARE_DEPLOYMENT.md](docs/CLOUDFLARE_DEPLOYMENT.md) | Variables, secretos, despliegue y rollback |
+| [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Telegram, correo, CRM, SysReptor, analytics |
+| [docs/SECURITY.md](docs/SECURITY.md) | Controles y revisión de la superficie pública |
+| [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md) | Comprobaciones visuales y de accesibilidad |
+| [VULNFOCUS_RESTRUCTURE_PLAN.md](VULNFOCUS_RESTRUCTURE_PLAN.md) | Auditoría y plan de la reestructuración |
+| [IMPLEMENTATION_PROGRESS.md](IMPLEMENTATION_PROGRESS.md) | Estado de cada fase |
 
 ## Puesta en marcha
 
@@ -24,48 +44,98 @@ Cloudflare (DNS · TLS · CDN · WAF · Turnstile)
 npm ci                       # raíz (wrangler + vitest)
 npm --prefix frontend ci     # frontend
 cp .dev.vars.example .dev.vars
-npm run db:migrate:local     # crea la tabla en la D1 local
+npm run db:migrate:local     # crea las tablas en la D1 local
 npm run build                # compila el frontend a frontend/build/
 npm run dev                  # http://localhost:8787
 ```
 
 `.dev.vars` trae las claves de **prueba** públicas de Turnstile documentadas por
 Cloudflare. Con ellas el formulario funciona en local sin tocar producción.
+`.dev.vars` está en `.gitignore` y nunca debe contener un secreto real. Es también
+donde viven los hostnames de desarrollo (`localhost`, `127.0.0.1`), que **no**
+están en la configuración de producción.
+
+> **Entornos:** el nivel raíz de `wrangler.jsonc` **es** producción. No hay
+> bloques `env.*` y ningún script usa `--env`. Ver
+> [docs/CLOUDFLARE_DEPLOYMENT.md](docs/CLOUDFLARE_DEPLOYMENT.md) § "Modelo de
+> entornos".
 
 ## Comandos
 
 | Comando | Qué hace |
 |---|---|
-| `npm test` | Suite Vitest sobre `workerd` con D1 local (73 tests) |
+| `npm test` | Suite Vitest sobre `workerd` con D1 local (**406 tests**) |
 | `npm run dev` | Worker + assets + D1 en local |
-| `npm run build` | Compila el frontend |
-| `npm run deploy:staging` | Build y despliegue a staging |
-| `npm run deploy:production` | Build y despliegue a producción |
-| `npm run db:migrate:staging` / `:production` | Aplica `migrations/` |
+| `npm run build` | Instala el frontend, lo compila y prerenderiza las rutas |
+| `npm run build:site` | Solo el post-build: 1 HTML por ruta, `404.html`, sitemap |
+| `npm run build:site:check` | Verifica que el build tiene una página por ruta |
+| `npm run deploy` | Build y despliegue (lo normal es que despliegue Workers Builds) |
+| `npm run deploy:dry-run` | Valida configuración y bindings **sin desplegar** |
+| `npm run db:migrate` | Aplica `migrations/` a la D1 remota |
+| `npm run db:migrate:local` | Aplica `migrations/` a la D1 de Miniflare |
 | `npm run db:backup [db]` | Export de D1 a `backups/` |
 | `npm run acceptance <url>` | Test de aceptación E2E (`smoke` = solo automático) |
-| `npm run tail:staging` / `:production` | Logs en vivo |
+| `npm run tail` | Logs en vivo |
 
 ## Estructura
 
 ```
 worker/
-  index.js            Routing y handler de /api/contact
-  lib/turnstile.js    Verificación Siteverify
-  lib/telegram.js     Notificación
-  lib/validate.js     Validación de campos
-  lib/http.js         Respuestas y cabeceras de seguridad
-frontend/             React (CRA + CRACO)
-  public/_headers     Cabeceras de los assets
-migrations/           SQL versionado de D1
-test/                 Suite Vitest
-scripts/              Backup, migración desde Mongo, smoke test
-wrangler.jsonc        Configuración de Cloudflare
+  index.js                 Routing y handler de /api/contact
+  lib/quotes-handler.js    Endpoints del cotizador
+  lib/quote/               Motor: normalize → scope → complexity → effort → pricing
+  lib/request.js           Content-Type, tamaño y parseo JSON (común)
+  lib/turnstile.js         Verificación Siteverify
+  lib/telegram.js          Notificaciones
+  lib/validate.js          Validación del formulario de contacto
+  lib/http.js              Respuestas y cabeceras de seguridad
+  lib/access.js            Verificación del JWT de Cloudflare Access
+  lib/admin/               API y panel del mini CRM (deshabilitados por defecto)
+  lib/quote/lifecycle.js   Máquina de estados comercial
+  config/quote-config.js   HORAS, FACTORES Y TARIFAS (único sitio con números de negocio)
+  integrations/            NotificationService, correo, CRM, SysReptor
+frontend/                  React (CRA + CRACO)
+  public/index.html        Shell con los marcadores del bloque SEO
+  public/_headers          Cabeceras de los assets
+  src/config/site.json     MANIFIESTO DE RUTAS + SEO por URL
+  src/config/quote-catalog.json  Catálogo público de preguntas (lo lee también el Worker)
+  src/data/services.js     Contenido de las páginas de servicio
+  src/features/quote/      Wizard, máquina de estados y vista de estimación
+migrations/                SQL versionado de D1
+scripts/build-site.mjs     Post-build: 1 HTML por ruta, 404.html y sitemap
+test/                      Suite Vitest
+wrangler.jsonc             Configuración de Cloudflare
 ```
 
 ---
 
 ## Decisiones de diseño
+
+### Routing: un HTML por ruta y 404 real
+
+Antes, `assets.not_found_handling: "single-page-application"` hacía que
+**cualquier** ruta devolviera 200 con `index.html`: `/wp-admin`, `/.env` o
+`/backup` parecían recursos reales y los rastreadores indexaban páginas
+inexistentes.
+
+El conjunto de rutas públicas es finito y se conoce en tiempo de build, así que
+`scripts/build-site.mjs` materializa `build/<ruta>.html` por cada entrada de
+`frontend/src/config/site.json`, y `not_found_handling: "404-page"` manda lo
+demás a `404.html` con código 404. Es una **allowlist por construcción**, no una
+lista negra de nombres comunes, y mantiene 0 invocaciones del Worker para el
+tráfico estático.
+
+De paso, cada URL sale del build con su `<title>`, `description`, `canonical`,
+Open Graph y JSON-LD propios, visibles para rastreadores que no ejecutan
+JavaScript.
+
+Se escribe `<ruta>.html` y no `<ruta>/index.html` a propósito: con la segunda
+forma Cloudflare responde `307` hacia `/<ruta>/`, que no es la URL canónica.
+Verificado con `wrangler dev`.
+
+> **Importante:** `npm run build` encadena `install:frontend → build:frontend →
+> build:site`. Sin el último paso no existen los HTML por ruta y **todas las
+> rutas devolverían 404**. `npm run build:site:check` lo verifica.
 
 ### Routing: `run_worker_first`
 
@@ -95,10 +165,28 @@ configuración SEO de producción. Como refuerzo, `index.html` declara `canonica
 hacia `https://vulnfocus.com/`, así que una página de staging se declara copia de
 la de producción y no compite con ella.
 
+### Cotizador
+
+`/cotizar` es un wizard de cinco pasos que envía respuestas de formulario, nunca
+cifras. **El backend recalcula todo**: horas, complejidad, precio y estado los
+deriva el Worker a partir de `worker/config/quote-config.js`, que no viaja al
+navegador. Los campos comerciales que llegaran en el cuerpo ni se leen: el
+normalizador solo mira claves declaradas en el catálogo público.
+
+Sin tarifa configurada o con `PRICING_ENABLED != "true"`, la estimación se
+entrega con esfuerzo y duración pero **sin importes**. Es deliberado: inventar
+un precio sería peor que no darlo. Ver
+[docs/QUOTING_ENGINE.md](docs/QUOTING_ENGINE.md).
+
+La descarga en PDF usa el diálogo de impresión del navegador sobre una vista con
+`@media print` dedicada. La justificación de no generar el PDF en el Worker está
+en el mismo documento.
+
 ### Rate limiting
 
 Binding nativo `ratelimits` de Workers: **5 solicitudes / 60 s por
-`CF-Connecting-IP`**.
+`CF-Connecting-IP`** en el contacto, **3 / 60 s** al crear una cotización y
+**30 / 60 s** al consultarla.
 
 Lo que es y lo que no es:
 
@@ -224,23 +312,30 @@ cambiarla puede alterar el comportamiento del Worker. Revísala al actualizar
 Wrangler de forma significativa (1-2 veces al año) y vuelve a pasar `npm test` y
 el smoke test antes de desplegar el cambio.
 
-### Separación staging / producción
+### Un solo entorno, declarado
 
-`wrangler.jsonc` **no declara `d1_databases` en el nivel raíz**, a propósito. Un
-`wrangler deploy` sin `--env` queda sin binding `DB` y por tanto no puede escribir
-en ninguna base: es imposible que un despliegue mal invocado meta contactos de
-prueba en producción. Cada entorno declara su D1, sus `vars` y su allowlist de
-hostnames de Turnstile explícitamente.
+`wrangler.jsonc` declara la D1, los cuatro limitadores y las `vars` **en el nivel
+raíz, que es producción**. No hay bloques `env.*`.
+
+El modelo anterior —documentación describiendo `env.staging`/`env.production`
+sobre un fichero sin entornos— tenía un fallo silencioso: `wrangler deploy --env
+production` sobre un fichero sin entornos crea un Worker **distinto**
+(`vulnfocus-v2-production`), sin D1 y sin limitadores. El despliegue no falla; la
+aplicación queda a medias. `test/config.test.js` impide que vuelva.
+
+La protección frente a un despliegue accidental no es la ausencia de binding sino
+`npm run deploy:dry-run`, las versiones de Cloudflare y `wrangler rollback`.
 
 ## Secretos
 
 Nunca en el repositorio. Se cargan por entorno:
 
 ```bash
-npx wrangler secret put TURNSTILE_SECRET_KEY --env staging
-npx wrangler secret put TELEGRAM_BOT_TOKEN   --env staging
-npx wrangler secret put TELEGRAM_CHAT_ID     --env staging
-# y lo mismo con --env production
+npx wrangler secret put TURNSTILE_SECRET_KEY
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+npx wrangler secret put TELEGRAM_CHAT_ID
+# solo si se activa el correo:
+npx wrangler secret put RESEND_API_KEY
 ```
 
 El **site key** de Turnstile sí es público y vive en `frontend/.env.production`.
@@ -248,15 +343,56 @@ El **site key** de Turnstile sí es público y vive en `frontend/.env.production
 ## Deuda técnica conocida
 
 1. **CRA sin mantenimiento.** `react-scripts` 5.0.1 es la última versión publicada
-   y arrastra 29 advisories sin parche disponible. Ninguno llega al navegador
-   (verificado), pero la cadena de build no tiene ruta de actualización. Migrar a
-   Vite es la solución real. Ver `MIGRACION_CLOUDFLARE.md` § Dependencias.
-2. **`style-src 'unsafe-inline'`**, por los estilos inline de React.
-3. **Toasts inertes.** `Contact.jsx` usa `useToast()` (Radix) pero `App.js`
-   renderiza el `<Toaster />` de sonner, así que esos toasts no se muestran. El
-   `<div className="status-message success">` sí funciona, de modo que el usuario
-   no percibe nada roto. Se conserva tal cual para no cambiar comportamiento
-   durante la migración.
-4. **Assets SEO ausentes.** `index.html` referencia `og-image.png`, `logo.png`,
-   `favicon-32x32.png` y `apple-touch-icon.png`, que no existen en `public/`. Las
-   previsualizaciones en redes sociales salen sin imagen.
+   y arrastra advisories sin parche disponible. Ninguno llega al navegador
+   (verificado: sin sourcemaps, sin `eval`, sin dependencias en tiempo de
+   ejecución del build), pero la cadena de build no tiene ruta de actualización.
+   Migrar a Vite es la solución real. Ver `MIGRACION_CLOUDFLARE.md` § Dependencias.
+
+2. **`style-src 'unsafe-inline'`.** Sigue haciendo falta por los estilos inline de
+   React: la barra de progreso del wizard tiene un `width` dinámico que no puede
+   vivir en la hoja. El honeypot, que antes usaba un atributo `style`, ya se
+   oculta desde CSS. El panel de administración **no** necesita esta excepción:
+   usa CSP con `nonce` por respuesta.
+
+3. ~~**Toasts inertes.**~~ **Corregido.** Un único sistema (sonner).
+
+4. ~~**Assets SEO ausentes.**~~ **Corregido.** Los siete PNG existen y se generan
+   con `scripts/generate-brand-assets.py` a partir del escudo real de
+   `favicon.svg`. `og-image.png` y `logo.png` son **assets técnicos**,
+   sustituibles por diseño: ver [docs/SEO_ASSETS.md](docs/SEO_ASSETS.md).
+
+5. ~~**Modelo de entornos de `wrangler.jsonc`.**~~ **Corregido.** El nivel raíz es
+   producción, no hay `env.*` y ningún script usa `--env`. Con tests que lo fijan.
+
+6. **Sin entorno de staging.** Es una decisión, no un olvido: un segundo entorno
+   con su D1, sus secretos y su Turnstile es coste de mantenimiento real. El
+   sustituto son los 406 tests sobre `workerd` con D1 real, `deploy:dry-run` y
+   `wrangler rollback`. Si algún día hace falta, la forma recomendada está en
+   [docs/CLOUDFLARE_DEPLOYMENT.md](docs/CLOUDFLARE_DEPLOYMENT.md), y **no** pasa
+   por añadir `env.staging` a este fichero.
+
+7. **`scripts/generate-brand-assets.py` requiere Python y Pillow.** No forma parte
+   de `npm run build` y su salida se versiona: se ejecuta a mano cuando cambia el
+   escudo. Añadir una dependencia de Python al build por siete ficheros que
+   cambian una vez al año no compensa.
+
+## Documentación
+
+| Documento | Contenido |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Estructura, decisiones y árbol del proyecto |
+| [docs/QUOTING_ENGINE.md](docs/QUOTING_ENGINE.md) | Cómo funciona el motor de cotización |
+| [docs/QUOTE_PRICING_REVIEW.md](docs/QUOTE_PRICING_REVIEW.md) | **Revisión de horas y tarifas, con cifras medidas** |
+| [docs/D1_SCHEMA.md](docs/D1_SCHEMA.md) | Esquema, migraciones y cómo aplicarlas |
+| [docs/CLOUDFLARE_DEPLOYMENT.md](docs/CLOUDFLARE_DEPLOYMENT.md) | Variables, bindings, despliegue y rollback |
+| [docs/CLOUDFLARE_MANUAL_ACTIONS.md](docs/CLOUDFLARE_MANUAL_ACTIONS.md) | **Qué debe hacer el propietario a mano** |
+| [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | Telegram, correo, CRM, SysReptor y analítica |
+| [docs/SECURITY.md](docs/SECURITY.md) | Superficie, controles y revisión de riesgos |
+| [docs/ADMIN.md](docs/ADMIN.md) | **Mini CRM: arquitectura, ciclo de vida y activación** |
+| [docs/DATA_RETENTION.md](docs/DATA_RETENTION.md) | **Qué se guarda, cuánto y cómo se purga** |
+| [docs/SEO_ASSETS.md](docs/SEO_ASSETS.md) | Iconos, Open Graph y datos estructurados |
+| [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) | **Estado verificado antes de desplegar** |
+| [docs/RELEASE_GATE.md](docs/RELEASE_GATE.md) | **Veredicto de producción y evidencia** |
+| [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md) | Revisión visual y de accesibilidad |
+| [docs/BASELINE_BEHAVIOR.md](docs/BASELINE_BEHAVIOR.md) | Contrato del comportamiento previo |
+| [IMPLEMENTATION_PROGRESS.md](IMPLEMENTATION_PROGRESS.md) | Estado por fase |

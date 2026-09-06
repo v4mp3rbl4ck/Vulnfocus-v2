@@ -6,8 +6,33 @@
 # CRA copia todo el contenido de public/ a build/ durante el build, así que este
 # fichero acaba en el directorio de assets. Workers lo interpreta y no lo sirve.
 
+# ---------------------------------------------------------------------------
+# HSTS — PRELOAD **NO** ACTIVADO. Decisión consciente.
+#
+#   Strict-Transport-Security: max-age=31536000; includeSubDomains
+#
+# `preload` se ha retirado a propósito. Anunciarlo es una invitación a inscribir
+# el dominio en hstspreload.org, y esa lista va COMPILADA en los navegadores:
+# salir de ella tarda meses y no hay forma de revertirlo desde Cloudflare. Con
+# `preload` en la cabecera y el dominio sin inscribir no se gana nada; con el
+# dominio inscrito, cualquier subdominio futuro que no sirva HTTPS válido queda
+# inaccesible sin recurso.
+#
+# `includeSubDomains` SÍ se mantiene. Implicación real: TODO subdominio de
+# vulnfocus.com queda obligado a HTTPS con certificado válido, incluido el
+# admin.vulnfocus.com previsto en docs/ADMIN.md. Cloudflare emite certificado
+# para los subdominios naranjas (proxied), así que se cumple; un subdominio
+# gris (DNS-only) apuntando a un servicio sin TLS dejaría de ser alcanzable.
+# Comprobar la lista de DNS antes de dar por bueno este encabezado:
+# docs/CLOUDFLARE_MANUAL_ACTIONS.md → M-08.
+#
+# Cuándo revisar `preload`: cuando el inventario de subdominios sea estable y
+# TODOS sirvan HTTPS. Entonces se añade la directiva Y se inscribe el dominio,
+# nunca una cosa sin la otra.
+# ---------------------------------------------------------------------------
+
 /*
-  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()

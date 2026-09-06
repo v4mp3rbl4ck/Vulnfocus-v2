@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-DB_NAME="${1:-vulnfocus}"   # por defecto producción; pasa "vulnfocus-staging" para staging
+DB_NAME="${1:-vulnfocus-production}"   # única base real; ver docs/CLOUDFLARE_DEPLOYMENT.md
 BACKUP_DIR="backups"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT="${BACKUP_DIR}/${DB_NAME}-${STAMP}.sql"

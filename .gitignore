@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+
+# Build del frontend (se genera con `npm run build`)
+frontend/build/
+
+# Secretos y configuración local. NUNCA versionar.
+.dev.vars
+.env
+.env.local
+frontend/.env
+frontend/.env.local
+
+# Estado local de Wrangler y Miniflare
+.wrangler/
+.mf/
+
+# Copias de seguridad de D1: contienen datos personales.
+backups/
+
+# Informes generados por el test de aceptación
+acceptance-report-*.md
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
