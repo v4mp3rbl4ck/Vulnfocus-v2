@@ -128,7 +128,7 @@
     // que worker/config/quote-config.js tenga tarifas reales configuradas.
     // Con "false" (por defecto) la estimación devuelve esfuerzo y duración,
     // pero NO precios: es la única forma de no inventar valores comerciales.
-    "PRICING_ENABLED": "false",
+    "PRICING_ENABLED": "true",
     "QUOTE_DEFAULT_CURRENCY": "CLP",
 
     // ---- Integraciones (ver docs/INTEGRATIONS.md) ------------------------
