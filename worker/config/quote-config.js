@@ -60,7 +60,7 @@ export const QUOTE_CONFIG = {
     multiplierRange: { min: 1, max: 2 },
 
     /** Banda presentada al cliente alrededor del esfuerzo calculado. */
-    band: { lower: 0.9, upper: 1.2 },
+    band: { lower: 0.7, upper: 1.2 },
 
     /** Umbrales de la etiqueta de complejidad mostrada. */
     complexityLabels: {
@@ -173,7 +173,7 @@ export const QUOTE_CONFIG = {
       },
 
       active_directory: {
-        baseHours: 24,
+        baseHours: 20,
         scope: {
           users: {
             type: 'tiers',
@@ -326,7 +326,7 @@ export const QUOTE_CONFIG = {
     currencies: {
       CLP: {
         // REQUIERE CONFIGURACIÓN DEL PROPIETARIO
-        hourlyRate: 61318,
+        hourlyRate: 45000,
         minimumAmount: 2125000,
         taxRate: 0.19,
         taxIncluded: false,
@@ -337,7 +337,7 @@ export const QUOTE_CONFIG = {
       },
       USD: {
         // REQUIERE CONFIGURACIÓN DEL PROPIETARIO
-        hourlyRate: 70,
+        hourlyRate: 50,
         minimumAmount: 2500,
         taxRate: 0.19,
         taxIncluded: false,
