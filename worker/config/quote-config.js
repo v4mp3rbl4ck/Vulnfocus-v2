@@ -53,7 +53,7 @@ export const QUOTE_CONFIG = {
 
   effort: {
     /** Suelo y techo del resultado final, en horas. */
-    minHours: 8,
+    minHours: 16,
     maxHours: 200,
 
     /** Límites del multiplicador de complejidad agregado. */
@@ -65,7 +65,7 @@ export const QUOTE_CONFIG = {
     /** Umbrales de la etiqueta de complejidad mostrada. */
     complexityLabels: {
       low: { maxHours: 45, maxMultiplier: 1.05 },
-      high: { minHours: 160, minMultiplier: 1.2 },
+      high: { minHours: 100, minMultiplier: 1.2 },
     },
 
     services: {
